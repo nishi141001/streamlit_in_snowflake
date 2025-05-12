@@ -121,7 +121,7 @@ def render_main_content():
     if st.session_state.current_page == "search":
         # 検索インターフェース
         search_interface = SearchInterface()
-        search_interface.render()
+        search_interface.render_search_interface()
     
     elif st.session_state.current_page == "ai":
         # AIインターフェース
