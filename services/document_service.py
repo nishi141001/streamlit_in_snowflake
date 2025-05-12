@@ -885,7 +885,8 @@ class DocumentService:
             """
             
             if doc_ids:
-                chunks_query += f" WHERE c.doc_id IN ({','.join([f"'{id}'" for id in doc_ids])})"
+                doc_ids_str = ','.join(f"'{id}'" for id in doc_ids)
+                chunks_query += f" WHERE c.doc_id IN ({doc_ids_str})"
             
             chunks_df = self.session.sql(chunks_query)
             
