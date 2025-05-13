@@ -2,20 +2,20 @@ name: app_environment
 channels:
   - snowflake
 dependencies:
-  - python=3.9.*
+  - python=3.10.*
   - numpy=1.24.*
   - pandas=1.5.*
-  - plotly=5.18.*
-  - pypdf=3.17.*
-  - pdfplumber=0.10.*
-  - python-dotenv=1.0.*
   - scikit-learn=1.3.*
   - streamlit=1.28.*
   - snowflake-snowpark-python=1.5.0
-  - snowflake-connector-python=3.5.0
-  - pillow=9.5.*
   - xlsxwriter=3.1.*
   - reportlab=3.6.*
   - openai=1.60.1
   - langchain=0.3.12
-  - sentence-transformers=3.4.1 
+  - sentence-transformers=3.4.1
+  - python-dotenv
+  - plotly
+  - pdfplumber
+  - pypdf
+  - snowflake-connector-python
+  - pillow 
