@@ -88,6 +88,59 @@ UI_CONFIG = {
             padding-bottom: 2rem;
         }
         
+        /* 機能カードのスタイル */
+        .section-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            background-color: #e6f7ff;
+            color: #1890ff;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feature-content {
+            flex: 1;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .feature-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        /* 既存のスタイル */
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
         }
