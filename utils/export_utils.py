@@ -212,5 +212,79 @@ def render_export_history() -> None:
         st.experimental_rerun()
 
 
+def export_history_as_csv(history: List[Dict], filename: Optional[str] = None) -> None:
+    """
+    履歴データをCSVとしてエクスポート
+    
+    Parameters:
+    -----------
+    history : List[Dict]
+        エクスポートする履歴データ
+    filename : Optional[str]
+        出力ファイル名
+    """
+    if not history:
+        st.warning("エクスポートする履歴がありません")
+        return
+    
+    # データフレームに変換
+    df = pd.DataFrame(history)
+    
+    # ファイル名の生成
+    if not filename:
+        filename = f"export_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    # CSVとしてダウンロード
+    csv = df.to_csv(index=False, encoding='utf-8-sig')
+    st.download_button(
+        "📥 CSVとしてダウンロード",
+        data=csv,
+        file_name=filename,
+        mime="text/csv"
+    )
+
+
+def export_history_as_markdown(history: List[Dict], filename: Optional[str] = None) -> None:
+    """
+    履歴データをMarkdownとしてエクスポート
+    
+    Parameters:
+    -----------
+    history : List[Dict]
+        エクスポートする履歴データ
+    filename : Optional[str]
+        出力ファイル名
+    """
+    if not history:
+        st.warning("エクスポートする履歴がありません")
+        return
+    
+    # Markdownの生成
+    md_lines = ["# エクスポート履歴\n"]
+    md_lines.append(f"エクスポート日時: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    
+    for i, item in enumerate(history, 1):
+        md_lines.append(f"## 項目 {i}\n")
+        for key, value in item.items():
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value, ensure_ascii=False, indent=2)
+            md_lines.append(f"- **{key}**: {value}\n")
+        md_lines.append("\n")
+    
+    markdown = "\n".join(md_lines)
+    
+    # ファイル名の生成
+    if not filename:
+        filename = f"export_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    
+    # Markdownとしてダウンロード
+    st.download_button(
+        "📥 Markdownとしてダウンロード",
+        data=markdown,
+        file_name=filename,
+        mime="text/markdown"
+    )
+
+
 # グローバルなエクスポートマネージャーのインスタンス
 export_manager = ExportManager() 

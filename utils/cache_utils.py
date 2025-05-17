@@ -562,4 +562,51 @@ def partial_update(
         return result
     
     else:
-        return update_data 
+        return update_data
+
+
+def cache_search_results(cache: SnowflakeCache, query: str, results: List[Dict], ttl: int = 3600) -> None:
+    """
+    検索結果をキャッシュに保存
+    
+    Parameters:
+    -----------
+    cache : SnowflakeCache
+        キャッシュインスタンス
+    query : str
+        検索クエリ
+    results : List[Dict]
+        キャッシュする検索結果
+    ttl : int
+        キャッシュの有効期限（秒）
+    """
+    try:
+        cache_key = f"search_results_{hashlib.md5(query.encode()).hexdigest()}"
+        cache.set(cache_key, results, ttl=ttl)
+    except Exception as e:
+        print(f"検索結果のキャッシュ保存中にエラー: {str(e)}")
+
+
+def get_cached_data(cache: SnowflakeCache, key: str, default: Any = None) -> Any:
+    """
+    キャッシュからデータを取得
+    
+    Parameters:
+    -----------
+    cache : SnowflakeCache
+        キャッシュインスタンス
+    key : str
+        キャッシュキー
+    default : Any
+        データが存在しない場合のデフォルト値
+        
+    Returns:
+    --------
+    Any
+        キャッシュされたデータ、またはデフォルト値
+    """
+    try:
+        return cache.get(key) or default
+    except Exception as e:
+        print(f"キャッシュデータの取得中にエラー: {str(e)}")
+        return default 

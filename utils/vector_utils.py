@@ -547,3 +547,40 @@ def search_in_tables_and_figures(
         })
     
     return results
+
+
+def calculate_similarity(vec1: List[float], vec2: List[float]) -> float:
+    """
+    2つのベクトル間のコサイン類似度を計算
+    
+    Parameters:
+    -----------
+    vec1 : list[float]
+        ベクトル1
+    vec2 : list[float]
+        ベクトル2
+        
+    Returns:
+    --------
+    float
+        コサイン類似度（-1から1の間）
+    """
+    try:
+        session = get_active_session()
+        # SnowflakeのVECTOR型を使用して類似度を計算
+        result = session.sql(f"""
+            SELECT VECTOR_COSINE_SIMILARITY(
+                {vec1}::VECTOR,
+                {vec2}::VECTOR
+            ) as similarity
+        """).collect()
+        return float(result[0]["SIMILARITY"])
+    except Exception as e:
+        print(f"類似度計算中にエラー: {str(e)}")
+        # フォールバック: NumPyを使用した計算
+        try:
+            vec1_np = np.array(vec1)
+            vec2_np = np.array(vec2)
+            return float(np.dot(vec1_np, vec2_np) / (np.linalg.norm(vec1_np) * np.linalg.norm(vec2_np)))
+        except:
+            return 0.0
