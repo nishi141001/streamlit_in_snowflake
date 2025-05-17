@@ -28,7 +28,7 @@ from utils.export_utils import export_history_as_csv, export_history_as_markdown
 
 # サービス
 from services.chat_service import generate_answer, generate_summary
-from services.embedding_service import EmbeddingService
+# from services.embedding_service import embed_documents, embed_query
 from services.document_service import DocumentService
 from services.search_service import SearchService
 from services.ai_service import AIService
@@ -77,8 +77,6 @@ def main():
     try:
         session = get_active_session()
         st.session_state.snowflake_connected = True
-        # EmbeddingServiceのインスタンス化
-        st.session_state.embedding_service = EmbeddingService()
     except Exception as e:
         st.error(f"Snowflakeセッションの取得に失敗しました: {str(e)}")
         st.session_state.snowflake_connected = False
@@ -194,107 +192,125 @@ def render_settings_page():
         # TODO: 設定の永続化
         st.success("設定を保存しました")
 
-
 def show_features_overview():
-    """機能概要の表示"""
-    # 機能概要セクション
-    st.markdown("### 📋 機能概要")
-    
-    # 機能カードを3列のグリッドで表示
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        # 複数PDF分析
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">📚</div>
-            <div class="feature-content">
-                <div class="feature-title">複数PDF分析</div>
-                <div class="feature-description">複数のPDFを同時に分析し、横断的な質問に回答</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # 要約機能
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">📝</div>
-            <div class="feature-content">
-                <div class="feature-title">要約機能</div>
-                <div class="feature-description">文書全体や選択ページの要約</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # セマンティック検索
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">🔍</div>
-            <div class="feature-content">
-                <div class="feature-title">セマンティック検索</div>
-                <div class="feature-description">意味ベースでPDF内容を検索</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # チャット履歴
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">📊</div>
-            <div class="feature-content">
-                <div class="feature-title">チャット履歴</div>
-                <div class="feature-description">会話履歴の保存とエクスポート</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        # インテリジェント回答
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">💬</div>
-            <div class="feature-content">
-                <div class="feature-title">インテリジェント回答</div>
-                <div class="feature-description">Snowflake Cortexを活用した質問応答</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # インタラクティブUI
-        st.markdown("""
-        <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <div class="feature-content">
-                <div class="feature-title">インタラクティブUI</div>
-                <div class="feature-description">使いやすいインターフェースでPDF閲覧と分析</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # 始め方セクション
-    st.markdown("### 🚀 始め方")
     st.markdown("""
-    1. 左側のサイドバーからPDFファイルをアップロード
-    2. 「統合検索」または「個別PDF分析」モードを選択
-    3. 質問を入力して分析を開始
-    4. 分析結果を確認し、必要に応じて追加の質問
-    """)
-    
-    # 機能仕様へのリンク
+    <style>
+        body, .reportview-container {
+            background-color: #F6FAFE !important;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 26px;
+            margin-bottom: 2.3em;
+        }
+        @media (max-width: 800px) {
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+        .feature-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 18px rgba(31,174,255,0.07);
+            padding: 1.4em 1.3em 1.15em 1.3em;
+            border-left: 6px solid #1FAEFF;
+            display: flex;
+            align-items: flex-start;
+            gap: 1em;
+            min-height: 115px;
+            transition: box-shadow .15s;
+        }
+        .feature-card:hover {
+            box-shadow: 0 8px 24px rgba(31,174,255,0.14);
+        }
+        .feature-icon {
+            font-size: 2.25em;
+            color: #1FAEFF;
+            min-width: 2.1em;
+            text-align: center;
+            margin-top: 2px;
+        }
+        .feature-content {
+            flex: 1;
+        }
+        .feature-title {
+            font-size: 1.14em;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+        .feature-description {
+            font-size: 1.01em;
+            color: #475569;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.markdown("""
-    <div style="margin-top: 1em;">
-        <a href="/機能仕様" target="_self" style="
-            text-decoration: none;
-            padding: 0.5em 1em;
-            background-color: #1FAEFF;
-            color: white;
-            border-radius: 4px;
-            display: inline-block;
-        ">📋 詳細な機能仕様を確認</a>
+    <div>
+      <h3 style="color:#1FAEFF; font-size:1.5em; margin-bottom:0.5em; margin-top:0;">📋 機能概要</h3>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📚</div>
+          <div class="feature-content">
+            <div class="feature-title">複数PDF分析</div>
+            <div class="feature-description">複数のPDFを同時に分析し、横断的な質問や集計が可能です。</div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-content">
+            <div class="feature-title">セマンティック検索</div>
+            <div class="feature-description">意味ベース・キーワードベース両方のPDF横断検索を実現します。</div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <div class="feature-content">
+            <div class="feature-title">インテリジェント回答</div>
+            <div class="feature-description">Snowflake Cortexで高精度な自然言語質問応答が可能。</div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <div class="feature-content">
+            <div class="feature-title">要約機能</div>
+            <div class="feature-description">文書全体やページ単位での自動要約が利用できます。</div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-content">
+            <div class="feature-title">チャット履歴管理</div>
+            <div class="feature-description">過去の会話履歴の保存・エクスポートが可能です。</div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-content">
+            <div class="feature-title">インタラクティブUI</div>
+            <div class="feature-description">直感的で使いやすいPDF閲覧＆分析インターフェース。</div>
+          </div>
+        </div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
+    # 始め方
+    st.markdown("""
+    <h3 style="color:#1FAEFF; margin-bottom:0.2em; margin-top:0.9em;">🚀 始め方</h3>
+    <ol style="font-size:1.07em; color:#334155; margin-left:1.2em;">
+      <li>左のサイドバーからPDFファイルをアップロード</li>
+      <li>「統合検索」または「個別分析」モードを選択</li>
+      <li>質問や要約を入力して分析スタート</li>
+      <li>結果を確認し、必要に応じて追加分析や履歴管理</li>
+    </ol>
+    <div style="margin-top: 1.2em;">
+      <a href="/機能仕様" target="_self"
+        style="text-decoration:none; padding:0.5em 1em; background:#1FAEFF; color:white; border-radius:4px; font-size:1em;">
+        📋 詳細な機能仕様を確認
+      </a>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
