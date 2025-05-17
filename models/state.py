@@ -139,4 +139,25 @@ class StateManager:
 
 
 # グローバルな状態マネージャーのインスタンス
-state_manager = StateManager() 
+state_manager = StateManager()
+
+def initialize_session_state() -> None:
+    """
+    セッション状態を初期化
+    
+    アプリケーション起動時に呼び出され、必要なセッション状態を初期化します。
+    """
+    state_manager._init_session_state()
+    
+    # その他の必要なセッション状態の初期化
+    if 'snowflake_connected' not in st.session_state:
+        st.session_state.snowflake_connected = False
+    
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'search'
+    
+    if 'pdf_contents' not in st.session_state:
+        st.session_state.pdf_contents = []
+    
+    if 'user_id' not in st.session_state:
+        st.session_state.user_id = 'anonymous' 
