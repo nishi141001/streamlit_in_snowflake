@@ -28,7 +28,7 @@ from utils.export_utils import export_history_as_csv, export_history_as_markdown
 
 # サービス
 from services.chat_service import generate_answer, generate_summary
-from services.embedding_service import embed_documents, embed_query
+from services.embedding_service import EmbeddingService
 from services.document_service import DocumentService
 from services.search_service import SearchService
 from services.ai_service import AIService
@@ -77,6 +77,8 @@ def main():
     try:
         session = get_active_session()
         st.session_state.snowflake_connected = True
+        # EmbeddingServiceのインスタンス化
+        st.session_state.embedding_service = EmbeddingService()
     except Exception as e:
         st.error(f"Snowflakeセッションの取得に失敗しました: {str(e)}")
         st.session_state.snowflake_connected = False
