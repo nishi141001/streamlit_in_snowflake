@@ -2,6 +2,8 @@ name: app_environment
 channels:
   - snowflake
 dependencies:
+  - pdfplumber=0.11.4
+  - pypdf=4.2.0
   - python=3.11.*
   - snowflake-snowpark-python=
   - streamlit=

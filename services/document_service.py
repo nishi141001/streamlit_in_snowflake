@@ -25,7 +25,7 @@ from utils.export_utils import export_manager, render_export_ui
 from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col, lit, array_construct
 from snowflake.snowpark.types import VectorType, FloatType
-from utils.pdf_utils import extract_text, extract_tables, extract_figures
+from utils.pdf_utils import extract_text, extract_tables_and_figures, extract_figures
 from utils.vector_utils import (
     embed_text,
     create_vector_index,
@@ -748,7 +748,7 @@ class DocumentService:
             text_chunks = extract_text(file_path)
             
             # テーブル抽出
-            tables = extract_tables(file_path)
+            tables = extract_tables_and_figures(file_path)
             
             # 図表抽出
             figures = extract_figures(file_path)
