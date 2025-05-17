@@ -401,12 +401,12 @@ def generate_summary(session, text, max_length=None, system_prompt=None):
             chunk_summaries = []
             
             for chunk in chunks:
-        response = session.cortex.complete(
-            model=SETTINGS["MODEL_CHAT"],
-            messages=[
+                response = session.cortex.complete(
+                    model=SETTINGS["MODEL_CHAT"],
+                    messages=[
                         {"role": "system", "content": system_prompt + f"\n\n結果は{max_length//len(chunks)}文字以内にまとめてください。"},
                         {"role": "user", "content": chunk}
-            ],
+                    ],
                     temperature=0.1,
                     max_tokens=max_length // len(chunks)
                 )
