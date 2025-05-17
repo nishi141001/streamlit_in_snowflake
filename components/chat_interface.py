@@ -163,16 +163,14 @@ def render_chat_interface(pdf_contents: List[Dict]):
                     file_name=f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json",
                     use_container_width=True
-        )
+                )
             except Exception as e:
                 st.error("エクスポート中にエラーが発生しました。")
         
         # 会話のクリア
         if st.button("🗑️ 会話をクリア", use_container_width=True):
             if st.session_state.chat_history:
-        st.session_state.chat_history = []
-                st.session_state.feedback_history = {}
-                st.rerun()
+                clear_chat_history()
             else:
                 st.info("クリアする会話がありません。")
         
@@ -221,3 +219,12 @@ def render_chat_export(chat_history: List[Dict]) -> None:
             'export_timestamp': datetime.now().isoformat()
         }
     )
+
+
+def clear_chat_history():
+    """チャット履歴をクリア"""
+    if 'chat_history' in st.session_state:
+        st.session_state.chat_history = []
+    if 'feedback_history' in st.session_state:
+        st.session_state.feedback_history = {}
+    st.rerun()

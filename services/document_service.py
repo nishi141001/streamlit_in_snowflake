@@ -25,7 +25,7 @@ from utils.export_utils import export_manager, render_export_ui
 from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col, lit, array_construct
 from snowflake.snowpark.types import VectorType, FloatType
-from utils.pdf_utils import extract_text, extract_tables_and_figures, extract_figures
+from utils.pdf_utils import extract_text, extract_tables_and_figures
 from utils.vector_utils import (
     embed_text,
     create_vector_index,
@@ -747,11 +747,10 @@ class DocumentService:
             # テキスト抽出
             text_chunks = extract_text(file_path)
             
-            # テーブル抽出
-            tables = extract_tables_and_figures(file_path)
-            
-            # 図表抽出
-            figures = extract_figures(file_path)
+            # テーブルと図表の抽出
+            tables_and_figures = extract_tables_and_figures(file_path)
+            tables = [item for item in tables_and_figures if item.get("type") == "table"]
+            figures = [item for item in tables_and_figures if item.get("type") == "figure"]
             
             # 文書メタデータの準備
             doc_metadata = {
