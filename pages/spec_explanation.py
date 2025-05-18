@@ -8,14 +8,13 @@ import streamlit as st
 from snowflake.snowpark.context import get_active_session
 
 
-# ページ設定
+
 st.set_page_config(
     page_title="機能仕様 - PDF Chat Analyst",
     page_icon="📋",
     layout="wide",
 )
 
-# グローバルCSS
 st.markdown("""
 <style>
 body, .reportview-container {
@@ -24,13 +23,13 @@ body, .reportview-container {
 .section-card {
     background-color: #FFFFFF;
     border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(31,174,255,0.07);
+    box-shadow: 0 2px 8px rgba(31,174,255,0.08);
     margin: 1em 0 2em 0;
-    padding: 1.4em 1.6em 1.2em 1.4em;
+    padding: 1.35em 1.3em 1.1em 1.3em;
     border-left: 7px solid #1FAEFF;
 }
 .section-title {
-    font-size: 1.35em;
+    font-size: 1.28em;
     font-weight: bold;
     color: #1e40af;
     margin-bottom: 0.5em;
@@ -38,46 +37,59 @@ body, .reportview-container {
     align-items: center;
     gap: 0.5em;
 }
-.feature-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 2em;
 }
-.feature-card {
-    background-color: #FFFFFF;
-    border-radius: 10px;
-    box-shadow: 0 2px 7px rgba(31,174,255,0.09);
-    border-left: 6px solid #1FAEFF;
-    min-width: 230px;
-    max-width: 340px;
-    flex: 1 1 240px;
-    padding: 1.1em 1.2em 1em 1.2em;
+@media (max-width: 800px) {
+    .grid-2col { grid-template-columns: 1fr; }
+}
+.card-core, .card-detail {
+    border-radius: 11px;
+    padding: 1em 1.15em 0.9em 1.15em;
     display: flex;
     align-items: flex-start;
-    gap: 0.7em;
+    gap: 0.85em;
+    min-height: 98px;
+    box-shadow: 0 1px 8px rgba(31,174,255,0.04);
 }
-.feature-icon {
-    font-size: 2em;
-    color: #1FAEFF;
-    min-width: 2.2em;
+.card-core {
+    background: linear-gradient(105deg, #EAF6FF 80%, #F6FAFE 100%);
+    border-left: 6px solid #63C0F6;
+}
+.card-detail {
+    background: linear-gradient(105deg, #F3F8FB 82%, #F6FAFE 100%);
+    border-left: 6px solid #90D6F6;
+}
+.icon-core, .icon-detail {
+    font-size: 1.85em;
+    min-width: 2.0em;
     text-align: center;
+    margin-top: 2px;
 }
-.feature-content {
-    flex: 1;
-}
-.feature-title {
+.icon-core { color: #1FAEFF; }
+.icon-detail { color: #63C0F6; }
+.card-content { flex: 1; }
+.card-title {
     font-weight: bold;
-    color: #1e40af;
-    font-size: 1.05em;
+    font-size: 1.04em;
     margin-bottom: 4px;
 }
-.feature-description {
-    color: #475569;
+.card-title-core { color: #2773B0; }
+.card-title-detail { color: #3399CC; }
+.card-desc-core {
+    color: #477088;
+    font-size: 0.99em;
+}
+.card-desc-detail {
+    color: #476681;
     font-size: 0.98em;
 }
 ul.tech-list li {
-    margin-bottom: 0.4em;
-    font-size: 1.04em;
+    margin-bottom: 0.3em;
+    font-size: 1.03em;
 }
 footer {
     text-align: right;
@@ -86,13 +98,10 @@ footer {
     margin-top: 2em;
     opacity: 0.75;
 }
-@media (max-width: 900px) {
-    .feature-grid { flex-direction: column; }
-}
 </style>
 """, unsafe_allow_html=True)
 
-# 見出し・概要
+# 概要
 st.markdown("""
 <div class="section-card">
   <div class="section-title">📋 PDF Chat Analyst - 機能仕様</div>
@@ -103,37 +112,45 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# コア機能
+# コア機能（淡色カード/2列グリッド）
 st.markdown("""
 <div class="section-card">
   <div class="section-title">🔑 コア機能</div>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="feature-icon">📚</div>
-      <div class="feature-content">
-        <div class="feature-title">複数PDF管理</div>
-        <div class="feature-description">複数のPDFを同時にアップロード・管理し、文書間の横断分析が可能。</div>
+  <div class="grid-2col">
+    <div class="card-core">
+      <div class="icon-core">📚</div>
+      <div class="card-content">
+        <div class="card-title card-title-core">複数PDF管理</div>
+        <div class="card-desc-core">
+          複数のPDFを同時にアップロード・管理し、文書間の横断分析が可能。
+        </div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔍</div>
-      <div class="feature-content">
-        <div class="feature-title">ハイブリッド検索</div>
-        <div class="feature-description">セマンティック検索とキーワード検索を組み合わせた高精度な検索機能。</div>
+    <div class="card-core">
+      <div class="icon-core">🔍</div>
+      <div class="card-content">
+        <div class="card-title card-title-core">ハイブリッド検索</div>
+        <div class="card-desc-core">
+          セマンティック検索とキーワード検索を組み合わせた高精度な検索機能。
+        </div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <div class="feature-content">
-        <div class="feature-title">インテリジェントチャット</div>
-        <div class="feature-description">Snowflake Cortexを活用した自然な対話インターフェースで文脈理解した回答を生成。</div>
+    <div class="card-core">
+      <div class="icon-core">💬</div>
+      <div class="card-content">
+        <div class="card-title card-title-core">インテリジェントチャット</div>
+        <div class="card-desc-core">
+          Snowflake Cortexを活用した自然な対話インターフェースで文脈理解した回答を生成。
+        </div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-content">
-        <div class="feature-title">高度な分析機能</div>
-        <div class="feature-description">使用パターン分析、セッション統計、トピック進化分析など詳細な分析機能。</div>
+    <div class="card-core">
+      <div class="icon-core">📊</div>
+      <div class="card-content">
+        <div class="card-title card-title-core">高度な分析機能</div>
+        <div class="card-desc-core">
+          使用パターン分析、セッション統計、トピック進化分析など詳細な分析機能。
+        </div>
       </div>
     </div>
   </div>
@@ -153,16 +170,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 分析機能の詳細
+# 分析機能の詳細（より淡いブルー系カード/2列グリッド）
 st.markdown("""
 <div class="section-card">
   <div class="section-title">📈 分析機能の詳細</div>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="feature-icon">📈</div>
-      <div class="feature-content">
-        <div class="feature-title">使用パターン分析</div>
-        <div class="feature-description">
+  <div class="grid-2col">
+    <div class="card-detail">
+      <div class="icon-detail">📈</div>
+      <div class="card-content">
+        <div class="card-title card-title-detail">使用パターン分析</div>
+        <div class="card-desc-detail">
           ・時間帯別の使用状況<br>
           ・セッション統計<br>
           ・応答時間分析<br>
@@ -170,11 +187,11 @@ st.markdown("""
         </div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔎</div>
-      <div class="feature-content">
-        <div class="feature-title">検索パターン分析</div>
-        <div class="feature-description">
+    <div class="card-detail">
+      <div class="icon-detail">🔎</div>
+      <div class="card-content">
+        <div class="card-title card-title-detail">検索パターン分析</div>
+        <div class="card-desc-detail">
           ・クエリカテゴリ分析<br>
           ・クエリの複雑さ分析<br>
           ・ソースの有効性分析<br>
@@ -182,11 +199,11 @@ st.markdown("""
         </div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-content">
-        <div class="feature-title">トレンド分析</div>
-        <div class="feature-description">
+    <div class="card-detail">
+      <div class="icon-detail">📊</div>
+      <div class="card-content">
+        <div class="card-title card-title-detail">トレンド分析</div>
+        <div class="card-desc-detail">
           ・トピックの進化分析<br>
           ・時系列変化の可視化<br>
           ・トレンドトピックの抽出<br>
@@ -204,6 +221,7 @@ st.markdown("""
   © 2024 PDF Chat Analyst - Powered by Snowflake Cortex
 </footer>
 """, unsafe_allow_html=True)
+
 # 現在の接続情報を表示
 try:
     session = get_active_session()

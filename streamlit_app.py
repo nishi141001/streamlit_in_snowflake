@@ -28,7 +28,6 @@ from utils.export_utils import export_history_as_csv, export_history_as_markdown
 
 # サービス
 from services.chat_service import generate_answer, generate_summary
-# from services.embedding_service import embed_documents, embed_query
 from services.document_service import DocumentService
 from services.search_service import SearchService
 from services.ai_service import AIService
@@ -62,7 +61,7 @@ def main():
     # ページ設定
     st.set_page_config(
         page_title="ChatPDF",
-        page_icon="��",
+        page_icon="❄️",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -82,27 +81,7 @@ def main():
         st.session_state.snowflake_connected = False
         return
     
-    # アプリタイトルとナビゲーション
-    st.markdown(
-        """
-        <div style="display: flex; align-items: center; margin-bottom: 1em;">
-            <h1 style="margin: 0;">❄️ PDF Chat Analyst</h1>
-            <div style="margin-left: auto;">
-                <a href="/機能仕様" target="_self" style="
-                    text-decoration: none;
-                    padding: 0.5em 1em;
-                    background-color: #1FAEFF;
-                    color: white;
-                    border-radius: 4px;
-                    font-size: 0.9em;
-                ">📋 機能仕様</a>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    # サイドバー表示
+    # サイドバー（render_sidebar）にはファイルアップロード等**必要最低限のみ**
     uploaded_files = render_sidebar()
     
     # メイン画面
@@ -117,30 +96,19 @@ def main():
 
 def render_main_content():
     """メインコンテンツの描画"""
-    # ページに応じたコンテンツの表示
     if st.session_state.current_page == "search":
-        # 検索インターフェース
         search_interface = SearchInterface()
         search_interface.render_search_interface()
-    
     elif st.session_state.current_page == "ai":
-        # AIインターフェース
         ai_interface = AIInterface()
         ai_interface.render()
-    
     elif st.session_state.current_page == "settings":
-        # 設定画面
         render_settings_page()
 
 
 def render_settings_page():
-    """設定画面の描画"""
     st.title("設定")
-    
-    # アプリケーション設定
     st.header("アプリケーション設定")
-    
-    # 検索設定
     st.subheader("検索設定")
     col1, col2 = st.columns(2)
     with col1:
@@ -162,8 +130,6 @@ def render_settings_page():
             value=SETTINGS.SEARCH_TEMPERATURE,
             step=0.1
         )
-    
-    # AI設定
     st.subheader("AI設定")
     col1, col2 = st.columns(2)
     with col1:
@@ -186,11 +152,9 @@ def render_settings_page():
             max_value=86400,
             value=SETTINGS.CACHE_TTL
         )
-    
-    # 設定の保存
     if st.button("設定を保存"):
-        # TODO: 設定の永続化
         st.success("設定を保存しました")
+
 
 def show_features_overview():
     st.markdown("""
@@ -247,6 +211,7 @@ def show_features_overview():
 
     st.markdown("""
     <div>
+      <h1 style="color:#1FAEFF; font-size:2em; margin-bottom:0.7em;">PDF Chat Analyst</h1>
       <h3 style="color:#1FAEFF; font-size:1.5em; margin-bottom:0.5em; margin-top:0;">📋 機能概要</h3>
       <div class="feature-grid">
         <div class="feature-card">
@@ -295,22 +260,19 @@ def show_features_overview():
     </div>
     """, unsafe_allow_html=True)
 
-    # 始め方
+    # 仕様ページへの遷移ボタンだけを目立つ場所に1つだけ
+    st.page_link("pages/spec_explanation.py", label="詳細な機能仕様を確認", icon="📋")
+
     st.markdown("""
-    <h3 style="color:#1FAEFF; margin-bottom:0.2em; margin-top:0.9em;">🚀 始め方</h3>
+    <h3 style="color:#1FAEFF; margin-bottom:0.2em; margin-top:1.1em;">🚀 始め方</h3>
     <ol style="font-size:1.07em; color:#334155; margin-left:1.2em;">
       <li>左のサイドバーからPDFファイルをアップロード</li>
       <li>「統合検索」または「個別分析」モードを選択</li>
       <li>質問や要約を入力して分析スタート</li>
       <li>結果を確認し、必要に応じて追加分析や履歴管理</li>
     </ol>
-    <div style="margin-top: 1.2em;">
-      <a href="/機能仕様" target="_self"
-        style="text-decoration:none; padding:0.5em 1em; background:#1FAEFF; color:white; border-radius:4px; font-size:1em;">
-        📋 詳細な機能仕様を確認
-      </a>
-    </div>
     """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()
