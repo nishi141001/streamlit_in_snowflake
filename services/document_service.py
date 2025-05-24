@@ -221,7 +221,7 @@ class DocumentService:
             CREATE TABLE IF NOT EXISTS document_chunks (
                 chunk_id STRING PRIMARY KEY,
                 doc_id STRING,
-                embedding VECTOR,
+                embedding VECTOR(FLOAT, 384),
                 text STRING,
                 page_num INTEGER,
                 chunk_num INTEGER,
