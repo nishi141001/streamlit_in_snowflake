@@ -27,38 +27,44 @@ class SearchService:
     
     def _init_tables(self):
         """必要なテーブルの初期化"""
-        # 既存のテーブルを個別に削除
-        self.session.sql("DROP TABLE IF EXISTS search_history").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_metadata").collect()
+        try:
+            # 既存のテーブルを個別に削除
+            self.session.sql("DROP TABLE IF EXISTS search_history").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_metadata").collect()
 
-        # 検索履歴テーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS search_history (
-            id STRING,
-            user_id STRING,
-            query STRING,
-            mode STRING,
-            target_document STRING,
-            filters VARIANT,
-            timestamp TIMESTAMP,
-            results_count INTEGER
-        )
-        """).collect()
-        
-        # ドキュメントメタデータテーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_metadata (
-            file_name STRING,
-            upload_date TIMESTAMP,
-            file_type STRING,
-            page_count INTEGER,
-            tags ARRAY,
-            folder_path STRING,
-            version INTEGER,
-            access_control VARIANT,
-            PRIMARY KEY (file_name)
-        )
-        """).collect()
+            # 検索履歴テーブルを個別に作成
+            self.session.sql("""
+            CREATE TABLE IF NOT EXISTS search_history (
+                id STRING,
+                user_id STRING,
+                query STRING,
+                mode STRING,
+                target_document STRING,
+                filters VARIANT,
+                timestamp TIMESTAMP,
+                results_count INTEGER,
+                PRIMARY KEY (id)
+            )
+            """).collect()
+            
+            # ドキュメントメタデータテーブルを個別に作成
+            self.session.sql("""
+            CREATE TABLE IF NOT EXISTS document_metadata (
+                file_name STRING,
+                upload_date TIMESTAMP,
+                file_type STRING,
+                page_count INTEGER,
+                tags ARRAY,
+                folder_path STRING,
+                version INTEGER,
+                access_control VARIANT,
+                PRIMARY KEY (file_name)
+            )
+            """).collect()
+
+        except Exception as e:
+            print(f"テーブル初期化中にエラー: {str(e)}")
+            raise
     
     def search(
         self,
