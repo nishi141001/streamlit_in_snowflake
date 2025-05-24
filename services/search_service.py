@@ -27,10 +27,12 @@ class SearchService:
     
     def _init_tables(self):
         """必要なテーブルの初期化"""
-        # 既存のテーブルを削除
+        # 既存のテーブルを削除（1つのクエリにまとめる）
         self.session.sql("""
+        BEGIN;
         DROP TABLE IF EXISTS search_history;
         DROP TABLE IF EXISTS document_metadata;
+        COMMIT;
         """).collect()
 
         # 検索履歴テーブル
