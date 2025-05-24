@@ -36,7 +36,7 @@ class EmbeddingService:
             CREATE TABLE IF NOT EXISTS document_embeddings (
                 doc_id STRING,
                 chunk_id STRING,
-                embedding VECTOR(384),
+                embedding VECTOR,
                 text STRING,
                 metadata VARIANT,
                 created_at TIMESTAMP,

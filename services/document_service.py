@@ -221,7 +221,7 @@ class DocumentService:
                 page_num INTEGER,
                 chunk_num INTEGER,
                 text STRING,
-                embedding VECTOR(384),
+                embedding VECTOR,
                 metadata VARIANT,
                 PRIMARY KEY (chunk_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)

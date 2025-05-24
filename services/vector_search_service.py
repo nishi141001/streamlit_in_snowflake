@@ -17,7 +17,7 @@ class VectorSearchService:
                 query_id STRING,
                 user_id STRING,
                 query_text STRING,
-                query_vector VECTOR(384),
+                query_vector VECTOR,
                 timestamp TIMESTAMP,
                 filters VARIANT,
                 PRIMARY KEY (query_id)
