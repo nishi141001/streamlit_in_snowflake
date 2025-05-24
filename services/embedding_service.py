@@ -32,11 +32,11 @@ class EmbeddingService:
             self.session.sql("DROP TABLE IF EXISTS embedding_metadata").collect()
 
             # ドキュメント埋め込みテーブルを個別に作成
-            create_document_embeddings = f"""
+            create_document_embeddings = """
             CREATE TABLE IF NOT EXISTS document_embeddings (
                 doc_id STRING,
                 chunk_id STRING,
-                embedding VECTOR({self.vector_dim}),
+                embedding VECTOR(384),
                 text STRING,
                 metadata VARIANT,
                 created_at TIMESTAMP,

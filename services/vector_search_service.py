@@ -12,12 +12,12 @@ class VectorSearchService:
             self.session.sql("DROP TABLE IF EXISTS vector_search_queries").collect()
 
             # ベクトル検索クエリテーブルを個別に作成
-            create_vector_search_queries = f"""
+            create_vector_search_queries = """
             CREATE TABLE IF NOT EXISTS vector_search_queries (
                 query_id STRING,
                 user_id STRING,
                 query_text STRING,
-                query_vector VECTOR({self.vector_dim}),
+                query_vector VECTOR(384),
                 timestamp TIMESTAMP,
                 filters VARIANT,
                 PRIMARY KEY (query_id)
