@@ -190,11 +190,15 @@ class DocumentService:
         DROP TABLE IF EXISTS document_versions;
         DROP TABLE IF EXISTS document_tags;
         DROP TABLE IF EXISTS documents;
+        DROP TABLE IF EXISTS document_chunks;
+        DROP TABLE IF EXISTS document_tables;
+        DROP TABLE IF EXISTS document_figures;
         """).collect()
 
         # ドキュメントテーブル
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS documents (
+            doc_id STRING,
             file_name STRING,
             upload_date TIMESTAMP,
             file_type STRING,
@@ -204,7 +208,51 @@ class DocumentService:
             version INTEGER,
             status STRING,
             metadata VARIANT,
-            PRIMARY KEY (file_name)
+            PRIMARY KEY (doc_id)
+        )
+        """).collect()
+        
+        # ドキュメントチャンクテーブル
+        self.session.sql("""
+        CREATE TABLE IF NOT EXISTS document_chunks (
+            chunk_id STRING,
+            doc_id STRING,
+            page_num INTEGER,
+            chunk_num INTEGER,
+            text STRING,
+            embedding VECTOR,
+            metadata VARIANT,
+            PRIMARY KEY (chunk_id),
+            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+        )
+        """).collect()
+
+        # ドキュメントテーブルテーブル
+        self.session.sql("""
+        CREATE TABLE IF NOT EXISTS document_tables (
+            table_id STRING,
+            doc_id STRING,
+            page_num INTEGER,
+            table_num INTEGER,
+            data VARIANT,
+            bbox VARIANT,
+            metadata VARIANT,
+            PRIMARY KEY (table_id),
+            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+        )
+        """).collect()
+
+        # ドキュメント図表テーブル
+        self.session.sql("""
+        CREATE TABLE IF NOT EXISTS document_figures (
+            figure_id STRING,
+            doc_id STRING,
+            page_num INTEGER,
+            figure_num INTEGER,
+            bbox VARIANT,
+            metadata VARIANT,
+            PRIMARY KEY (figure_id),
+            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
         )
         """).collect()
         
@@ -289,13 +337,14 @@ class DocumentService:
         # ドキュメントの保存
         self.session.sql("""
         INSERT INTO documents (
-            file_name, upload_date, file_type, file_size,
+            doc_id, file_name, upload_date, file_type, file_size,
             folder_path, version, status, metadata
         ) VALUES (
-            :file_name, :upload_date, :file_type, :file_size,
+            :doc_id, :file_name, :upload_date, :file_type, :file_size,
             :folder_path, :version, :status, PARSE_JSON(:metadata)
         )
         """, {
+            "doc_id": f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "file_name": file_name,
             "upload_date": datetime.now(),
             "file_type": file_type,
@@ -771,10 +820,14 @@ class DocumentService:
             }
             
             # 文書データの保存
-            self.session.sql(f"""
-                INSERT INTO documents (doc_id, file_name, upload_time, metadata)
-                VALUES ('{doc_id}', '{file_name}', CURRENT_TIMESTAMP(), PARSE_JSON('{json.dumps(doc_metadata)}'))
-            """).collect()
+            self.session.sql("""
+                INSERT INTO documents (doc_id, file_name, upload_date, metadata)
+                VALUES (:doc_id, :file_name, CURRENT_TIMESTAMP(), PARSE_JSON(:metadata))
+            """, {
+                "doc_id": doc_id,
+                "file_name": file_name,
+                "metadata": json.dumps(doc_metadata)
+            }).collect()
             
             # チャンクのベクトル化と保存
             for page_num, chunks in enumerate(text_chunks, 1):
@@ -790,16 +843,24 @@ class DocumentService:
                         "text_length": len(text)
                     }
                     
-                    self.session.sql(f"""
+                    self.session.sql("""
                         INSERT INTO document_chunks (
                             chunk_id, doc_id, page_num, chunk_num,
                             text, embedding, metadata
                         )
                         VALUES (
-                            '{chunk_id}', '{doc_id}', {page_num}, {chunk_num},
-                            '{text}', {embedding}::VECTOR, PARSE_JSON('{json.dumps(chunk_metadata)}')
+                            :chunk_id, :doc_id, :page_num, :chunk_num,
+                            :text, :embedding, PARSE_JSON(:metadata)
                         )
-                    """).collect()
+                    """, {
+                        "chunk_id": chunk_id,
+                        "doc_id": doc_id,
+                        "page_num": page_num,
+                        "chunk_num": chunk_num,
+                        "text": text,
+                        "embedding": embedding,
+                        "metadata": json.dumps(chunk_metadata)
+                    }).collect()
             
             # テーブルデータの保存
             for page_num, page_tables in enumerate(tables, 1):
@@ -812,18 +873,24 @@ class DocumentService:
                         "num_cols": len(table["data"][0]) if table["data"] else 0
                     }
                     
-                    self.session.sql(f"""
+                    self.session.sql("""
                         INSERT INTO document_tables (
                             table_id, doc_id, page_num, table_num,
                             data, bbox, metadata
                         )
                         VALUES (
-                            '{table_id}', '{doc_id}', {page_num}, {table_num},
-                            PARSE_JSON('{json.dumps(table["data"])}'),
-                            PARSE_JSON('{json.dumps(table["bbox"])}'),
-                            PARSE_JSON('{json.dumps(table_metadata)}')
+                            :table_id, :doc_id, :page_num, :table_num,
+                            PARSE_JSON(:data), PARSE_JSON(:bbox), PARSE_JSON(:metadata)
                         )
-                    """).collect()
+                    """, {
+                        "table_id": table_id,
+                        "doc_id": doc_id,
+                        "page_num": page_num,
+                        "table_num": table_num,
+                        "data": json.dumps(table["data"]),
+                        "bbox": json.dumps(table["bbox"]),
+                        "metadata": json.dumps(table_metadata)
+                    }).collect()
             
             # 図表データの保存
             for page_num, page_figures in enumerate(figures, 1):
@@ -836,17 +903,23 @@ class DocumentService:
                         "height": figure.get("height", 0)
                     }
                     
-                    self.session.sql(f"""
+                    self.session.sql("""
                         INSERT INTO document_figures (
                             figure_id, doc_id, page_num, figure_num,
                             bbox, metadata
                         )
                         VALUES (
-                            '{figure_id}', '{doc_id}', {page_num}, {figure_num},
-                            PARSE_JSON('{json.dumps(figure["bbox"])}'),
-                            PARSE_JSON('{json.dumps(figure_metadata)}')
+                            :figure_id, :doc_id, :page_num, :figure_num,
+                            PARSE_JSON(:bbox), PARSE_JSON(:metadata)
                         )
-                    """).collect()
+                    """, {
+                        "figure_id": figure_id,
+                        "doc_id": doc_id,
+                        "page_num": page_num,
+                        "figure_num": figure_num,
+                        "bbox": json.dumps(figure["bbox"]),
+                        "metadata": json.dumps(figure_metadata)
+                    }).collect()
             
             return doc_id
             
