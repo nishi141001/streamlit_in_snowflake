@@ -219,14 +219,13 @@ class DocumentService:
             # ドキュメントチャンクテーブルを個別に作成
             create_document_chunks = """
             CREATE TABLE IF NOT EXISTS document_chunks (
-                chunk_id STRING,
+                chunk_id STRING PRIMARY KEY,
                 doc_id STRING,
+                embedding VECTOR,
+                text STRING,
                 page_num INTEGER,
                 chunk_num INTEGER,
-                text STRING,
-                embedding VECTOR,
                 metadata VARIANT,
-                PRIMARY KEY (chunk_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
