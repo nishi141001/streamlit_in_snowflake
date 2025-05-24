@@ -817,7 +817,7 @@ class DocumentService:
                 **(metadata or {})
             }
             
-            # 文書データの保存
+            # 文書データの保存（個別に実行）
             self.session.sql("""
                 INSERT INTO documents (doc_id, file_name, upload_date, metadata)
                 VALUES (:doc_id, :file_name, CURRENT_TIMESTAMP(), PARSE_JSON(:metadata))
@@ -827,7 +827,7 @@ class DocumentService:
                 "metadata": json.dumps(doc_metadata)
             }).collect()
             
-            # チャンクのベクトル化と保存
+            # チャンクのベクトル化と保存（個別に実行）
             for page_num, chunks in enumerate(text_chunks, 1):
                 # テキストのベクトル化
                 embeddings = embed_text(chunks)
@@ -860,7 +860,7 @@ class DocumentService:
                         "metadata": json.dumps(chunk_metadata)
                     }).collect()
             
-            # テーブルデータの保存
+            # テーブルデータの保存（個別に実行）
             for page_num, page_tables in enumerate(tables, 1):
                 for table_num, table in enumerate(page_tables, 1):
                     table_id = f"{doc_id}_p{page_num}_t{table_num}"
@@ -890,7 +890,7 @@ class DocumentService:
                         "metadata": json.dumps(table_metadata)
                     }).collect()
             
-            # 図表データの保存
+            # 図表データの保存（個別に実行）
             for page_num, page_figures in enumerate(figures, 1):
                 for figure_num, figure in enumerate(page_figures, 1):
                     figure_id = f"{doc_id}_p{page_num}_f{figure_num}"
