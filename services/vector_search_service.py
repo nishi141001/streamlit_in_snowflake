@@ -1,6 +1,7 @@
 class VectorSearchService:
     def __init__(self, session: Session):
         self.session = session
+        self.vector_dim = 384  # デフォルトのベクトル次元数
         self._init_tables()
 
     def _init_tables(self):
@@ -16,7 +17,7 @@ class VectorSearchService:
                 query_id STRING,
                 user_id STRING,
                 query_text STRING,
-                query_vector VECTOR,
+                query_vector VECTOR(FLOAT, {self.vector_dim}),
                 timestamp TIMESTAMP,
                 filters VARIANT,
                 PRIMARY KEY (query_id)

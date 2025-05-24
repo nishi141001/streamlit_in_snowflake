@@ -180,6 +180,7 @@ class DocumentService:
         """初期化"""
         self.session = get_active_session()
         self.cache = SnowflakeCache()
+        self.vector_dim = 384  # デフォルトのベクトル次元数
         self._init_tables()
     
     def _init_tables(self) -> None:
@@ -220,7 +221,7 @@ class DocumentService:
                 page_num INTEGER,
                 chunk_num INTEGER,
                 text STRING,
-                embedding VECTOR,
+                embedding VECTOR(FLOAT, {self.vector_dim}),
                 metadata VARIANT,
                 PRIMARY KEY (chunk_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
