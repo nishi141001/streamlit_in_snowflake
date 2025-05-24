@@ -26,36 +26,43 @@ class EmbeddingService:
     
     def _init_tables(self):
         """必要なテーブルの初期化"""
-        # 既存のテーブルを個別に削除
-        self.session.sql("DROP TABLE IF EXISTS document_embeddings").collect()
-        self.session.sql("DROP TABLE IF EXISTS embedding_metadata").collect()
+        try:
+            # 既存のテーブルを個別に削除
+            self.session.sql("DROP TABLE IF EXISTS document_embeddings").collect()
+            self.session.sql("DROP TABLE IF EXISTS embedding_metadata").collect()
 
-        # ドキュメント埋め込みテーブル
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_embeddings (
-            doc_id STRING,
-            chunk_id STRING,
-            embedding VECTOR,
-            text STRING,
-            metadata VARIANT,
-            created_at TIMESTAMP,
-            PRIMARY KEY (chunk_id)
-        )
-        """).collect()
+            # ドキュメント埋め込みテーブルを個別に作成
+            create_document_embeddings = """
+            CREATE TABLE IF NOT EXISTS document_embeddings (
+                doc_id STRING,
+                chunk_id STRING,
+                embedding VECTOR,
+                text STRING,
+                metadata VARIANT,
+                created_at TIMESTAMP,
+                PRIMARY KEY (chunk_id)
+            )
+            """
+            self.session.sql(create_document_embeddings).collect()
 
-        # 埋め込みメタデータテーブル
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS embedding_metadata (
-            doc_id STRING,
-            model_name STRING,
-            embedding_dim INTEGER,
-            chunk_size INTEGER,
-            overlap INTEGER,
-            metadata VARIANT,
-            created_at TIMESTAMP,
-            PRIMARY KEY (doc_id)
-        )
-        """).collect()
+            # 埋め込みメタデータテーブルを個別に作成
+            create_embedding_metadata = """
+            CREATE TABLE IF NOT EXISTS embedding_metadata (
+                doc_id STRING,
+                model_name STRING,
+                embedding_dim INTEGER,
+                chunk_size INTEGER,
+                overlap INTEGER,
+                metadata VARIANT,
+                created_at TIMESTAMP,
+                PRIMARY KEY (doc_id)
+            )
+            """
+            self.session.sql(create_embedding_metadata).collect()
+
+        except Exception as e:
+            print(f"テーブル初期化中にエラー: {str(e)}")
+            raise
     
     def embed_text(self, text: str) -> Optional[List[float]]:
         """

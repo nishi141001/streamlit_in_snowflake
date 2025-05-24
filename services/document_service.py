@@ -184,114 +184,126 @@ class DocumentService:
     
     def _init_tables(self) -> None:
         """必要なテーブルの初期化"""
-        # 既存のテーブルを個別に削除（外部キー制約を考慮して逆順に削除）
-        self.session.sql("DROP TABLE IF EXISTS document_access").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_versions").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_tags").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_figures").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
-        self.session.sql("DROP TABLE IF EXISTS documents").collect()
+        try:
+            # 既存のテーブルを個別に削除（外部キー制約を考慮して逆順に削除）
+            self.session.sql("DROP TABLE IF EXISTS document_access").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_versions").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_tags").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_figures").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
+            self.session.sql("DROP TABLE IF EXISTS documents").collect()
 
-        # ドキュメントテーブルを個別に作成（外部キー制約の親テーブル）
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS documents (
-            doc_id STRING,
-            file_name STRING,
-            upload_date TIMESTAMP,
-            file_type STRING,
-            file_size INTEGER,
-            page_count INTEGER,
-            folder_path STRING,
-            version INTEGER,
-            status STRING,
-            metadata VARIANT,
-            PRIMARY KEY (doc_id)
-        )
-        """).collect()
-        
-        # ドキュメントチャンクテーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_chunks (
-            chunk_id STRING,
-            doc_id STRING,
-            page_num INTEGER,
-            chunk_num INTEGER,
-            text STRING,
-            embedding VECTOR,
-            metadata VARIANT,
-            PRIMARY KEY (chunk_id),
-            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
-        )
-        """).collect()
+            # ドキュメントテーブルを個別に作成（外部キー制約の親テーブル）
+            create_documents = """
+            CREATE TABLE IF NOT EXISTS documents (
+                doc_id STRING,
+                file_name STRING,
+                upload_date TIMESTAMP,
+                file_type STRING,
+                file_size INTEGER,
+                page_count INTEGER,
+                folder_path STRING,
+                version INTEGER,
+                status STRING,
+                metadata VARIANT,
+                PRIMARY KEY (doc_id)
+            )
+            """
+            self.session.sql(create_documents).collect()
+            
+            # ドキュメントチャンクテーブルを個別に作成
+            create_document_chunks = """
+            CREATE TABLE IF NOT EXISTS document_chunks (
+                chunk_id STRING,
+                doc_id STRING,
+                page_num INTEGER,
+                chunk_num INTEGER,
+                text STRING,
+                embedding VECTOR,
+                metadata VARIANT,
+                PRIMARY KEY (chunk_id),
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+            )
+            """
+            self.session.sql(create_document_chunks).collect()
 
-        # ドキュメントテーブルテーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_tables (
-            table_id STRING,
-            doc_id STRING,
-            page_num INTEGER,
-            table_num INTEGER,
-            data VARIANT,
-            bbox VARIANT,
-            metadata VARIANT,
-            PRIMARY KEY (table_id),
-            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
-        )
-        """).collect()
+            # ドキュメントテーブルテーブルを個別に作成
+            create_document_tables = """
+            CREATE TABLE IF NOT EXISTS document_tables (
+                table_id STRING,
+                doc_id STRING,
+                page_num INTEGER,
+                table_num INTEGER,
+                data VARIANT,
+                bbox VARIANT,
+                metadata VARIANT,
+                PRIMARY KEY (table_id),
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+            )
+            """
+            self.session.sql(create_document_tables).collect()
 
-        # ドキュメント図表テーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_figures (
-            figure_id STRING,
-            doc_id STRING,
-            page_num INTEGER,
-            figure_num INTEGER,
-            bbox VARIANT,
-            metadata VARIANT,
-            PRIMARY KEY (figure_id),
-            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
-        )
-        """).collect()
-        
-        # タグテーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_tags (
-            file_name STRING,
-            tag STRING,
-            created_at TIMESTAMP,
-            created_by STRING,
-            PRIMARY KEY (file_name, tag),
-            FOREIGN KEY (file_name) REFERENCES documents(file_name)
-        )
-        """).collect()
-        
-        # バージョン履歴テーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_versions (
-            file_name STRING,
-            version INTEGER,
-            upload_date TIMESTAMP,
-            uploaded_by STRING,
-            change_description STRING,
-            file_hash STRING,
-            PRIMARY KEY (file_name, version),
-            FOREIGN KEY (file_name) REFERENCES documents(file_name)
-        )
-        """).collect()
-        
-        # アクセス権限テーブルを個別に作成
-        self.session.sql("""
-        CREATE TABLE IF NOT EXISTS document_access (
-            file_name STRING,
-            user_id STRING,
-            permission STRING,
-            granted_at TIMESTAMP,
-            granted_by STRING,
-            PRIMARY KEY (file_name, user_id),
-            FOREIGN KEY (file_name) REFERENCES documents(file_name)
-        )
-        """).collect()
+            # ドキュメント図表テーブルを個別に作成
+            create_document_figures = """
+            CREATE TABLE IF NOT EXISTS document_figures (
+                figure_id STRING,
+                doc_id STRING,
+                page_num INTEGER,
+                figure_num INTEGER,
+                bbox VARIANT,
+                metadata VARIANT,
+                PRIMARY KEY (figure_id),
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+            )
+            """
+            self.session.sql(create_document_figures).collect()
+            
+            # タグテーブルを個別に作成
+            create_document_tags = """
+            CREATE TABLE IF NOT EXISTS document_tags (
+                file_name STRING,
+                tag STRING,
+                created_at TIMESTAMP,
+                created_by STRING,
+                PRIMARY KEY (file_name, tag),
+                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+            )
+            """
+            self.session.sql(create_document_tags).collect()
+            
+            # バージョン履歴テーブルを個別に作成
+            create_document_versions = """
+            CREATE TABLE IF NOT EXISTS document_versions (
+                file_name STRING,
+                version INTEGER,
+                upload_date TIMESTAMP,
+                uploaded_by STRING,
+                change_description STRING,
+                file_hash STRING,
+                PRIMARY KEY (file_name, version),
+                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+            )
+            """
+            self.session.sql(create_document_versions).collect()
+            
+            # アクセス権限テーブルを個別に作成
+            create_document_access = """
+            CREATE TABLE IF NOT EXISTS document_access (
+                file_name STRING,
+                user_id STRING,
+                permission STRING,
+                granted_at TIMESTAMP,
+                granted_by STRING,
+                PRIMARY KEY (file_name, user_id),
+                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+            )
+            """
+            self.session.sql(create_document_access).collect()
+
+        except Exception as e:
+            print(f"テーブル初期化中にエラー: {str(e)}")
+            raise
     
     def upload_document(
         self,

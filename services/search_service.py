@@ -28,12 +28,12 @@ class SearchService:
     def _init_tables(self):
         """必要なテーブルの初期化"""
         try:
-            # 既存のテーブルを個別に削除
+            # 既存のテーブルを個別に削除（外部キー制約を考慮して逆順に削除）
             self.session.sql("DROP TABLE IF EXISTS search_history").collect()
             self.session.sql("DROP TABLE IF EXISTS document_metadata").collect()
 
             # 検索履歴テーブルを個別に作成
-            self.session.sql("""
+            create_search_history = """
             CREATE TABLE IF NOT EXISTS search_history (
                 id STRING,
                 user_id STRING,
@@ -45,10 +45,11 @@ class SearchService:
                 results_count INTEGER,
                 PRIMARY KEY (id)
             )
-            """).collect()
+            """
+            self.session.sql(create_search_history).collect()
             
             # ドキュメントメタデータテーブルを個別に作成
-            self.session.sql("""
+            create_document_metadata = """
             CREATE TABLE IF NOT EXISTS document_metadata (
                 file_name STRING,
                 upload_date TIMESTAMP,
@@ -60,7 +61,8 @@ class SearchService:
                 access_control VARIANT,
                 PRIMARY KEY (file_name)
             )
-            """).collect()
+            """
+            self.session.sql(create_document_metadata).collect()
 
         except Exception as e:
             print(f"テーブル初期化中にエラー: {str(e)}")
