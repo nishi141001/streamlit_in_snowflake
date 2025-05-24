@@ -21,7 +21,6 @@ class EmbeddingService:
         self.session = get_active_session()
         self.cache = cache
         self.model_name = SETTINGS.get("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-        self.vector_dim = SETTINGS.get("VECTOR_DIM", 384)
         self._init_tables()
     
     def _init_tables(self):

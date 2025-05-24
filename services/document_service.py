@@ -37,6 +37,7 @@ from utils.cache_utils import SnowflakeCache
 from config import SETTINGS
 import os
 from pathlib import Path
+import time
 
 
 class DocumentType(Enum):
@@ -186,13 +187,16 @@ class DocumentService:
         """必要なテーブルの初期化"""
         try:
             # 既存のテーブルを個別に削除（外部キー制約を考慮して逆順に削除）
-            self.session.sql("DROP TABLE IF EXISTS document_access").collect()
-            self.session.sql("DROP TABLE IF EXISTS document_versions").collect()
-            self.session.sql("DROP TABLE IF EXISTS document_tags").collect()
-            self.session.sql("DROP TABLE IF EXISTS document_figures").collect()
-            self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
-            self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
-            self.session.sql("DROP TABLE IF EXISTS documents").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_access CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_versions CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_tags CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_figures CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_tables CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS document_chunks CASCADE").collect()
+            self.session.sql("DROP TABLE IF EXISTS documents CASCADE").collect()
+
+            # テーブルが完全に削除されるまで少し待機
+            time.sleep(1)
 
             # ドキュメントテーブルを個別に作成（外部キー制約の親テーブル）
             create_documents = """
