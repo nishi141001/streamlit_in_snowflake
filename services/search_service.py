@@ -31,7 +31,7 @@ class SearchService:
         self.session.sql("DROP TABLE IF EXISTS search_history").collect()
         self.session.sql("DROP TABLE IF EXISTS document_metadata").collect()
 
-        # 検索履歴テーブル
+        # 検索履歴テーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS search_history (
             id STRING,
@@ -45,7 +45,7 @@ class SearchService:
         )
         """).collect()
         
-        # ドキュメントメタデータテーブル
+        # ドキュメントメタデータテーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_metadata (
             file_name STRING,

@@ -184,16 +184,16 @@ class DocumentService:
     
     def _init_tables(self) -> None:
         """必要なテーブルの初期化"""
-        # 既存のテーブルを個別に削除
+        # 既存のテーブルを個別に削除（外部キー制約を考慮して逆順に削除）
         self.session.sql("DROP TABLE IF EXISTS document_access").collect()
         self.session.sql("DROP TABLE IF EXISTS document_versions").collect()
         self.session.sql("DROP TABLE IF EXISTS document_tags").collect()
-        self.session.sql("DROP TABLE IF EXISTS documents").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
-        self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
         self.session.sql("DROP TABLE IF EXISTS document_figures").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
+        self.session.sql("DROP TABLE IF EXISTS documents").collect()
 
-        # ドキュメントテーブル
+        # ドキュメントテーブルを個別に作成（外部キー制約の親テーブル）
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS documents (
             doc_id STRING,
@@ -210,7 +210,7 @@ class DocumentService:
         )
         """).collect()
         
-        # ドキュメントチャンクテーブル
+        # ドキュメントチャンクテーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_chunks (
             chunk_id STRING,
@@ -225,7 +225,7 @@ class DocumentService:
         )
         """).collect()
 
-        # ドキュメントテーブルテーブル
+        # ドキュメントテーブルテーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_tables (
             table_id STRING,
@@ -240,7 +240,7 @@ class DocumentService:
         )
         """).collect()
 
-        # ドキュメント図表テーブル
+        # ドキュメント図表テーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_figures (
             figure_id STRING,
@@ -254,7 +254,7 @@ class DocumentService:
         )
         """).collect()
         
-        # タグテーブル
+        # タグテーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_tags (
             file_name STRING,
@@ -266,7 +266,7 @@ class DocumentService:
         )
         """).collect()
         
-        # バージョン履歴テーブル
+        # バージョン履歴テーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_versions (
             file_name STRING,
@@ -280,7 +280,7 @@ class DocumentService:
         )
         """).collect()
         
-        # アクセス権限テーブル
+        # アクセス権限テーブルを個別に作成
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS document_access (
             file_name STRING,
