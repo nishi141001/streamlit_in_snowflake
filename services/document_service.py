@@ -908,7 +908,7 @@ class DocumentService:
                         )
                         VALUES (
                             :chunk_id, :doc_id, :page_num, :chunk_num,
-                            :text, :embedding, PARSE_JSON(:metadata)
+                            :text, :embedding::VECTOR(FLOAT, 384), PARSE_JSON(:metadata)
                         )
                     """, {
                         "chunk_id": chunk_id,
