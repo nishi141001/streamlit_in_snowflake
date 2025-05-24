@@ -27,6 +27,12 @@ class SearchService:
     
     def _init_tables(self):
         """必要なテーブルの初期化"""
+        # 既存のテーブルを削除
+        self.session.sql("""
+        DROP TABLE IF EXISTS search_history;
+        DROP TABLE IF EXISTS document_metadata;
+        """).collect()
+
         # 検索履歴テーブル
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS search_history (
@@ -35,7 +41,7 @@ class SearchService:
             query STRING,
             mode STRING,
             target_document STRING,
-            filters JSON,
+            filters VARIANT,
             timestamp TIMESTAMP,
             results_count INTEGER
         )
@@ -51,7 +57,7 @@ class SearchService:
             tags ARRAY,
             folder_path STRING,
             version INTEGER,
-            access_control JSON,
+            access_control VARIANT,
             PRIMARY KEY (file_name)
         )
         """).collect()
