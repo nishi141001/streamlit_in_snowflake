@@ -180,7 +180,6 @@ class DocumentService:
         """初期化"""
         self.session = get_active_session()
         self.cache = SnowflakeCache()
-        self.vector_dim = 384  # デフォルトのベクトル次元数
         self._init_tables()
     
     def _init_tables(self) -> None:

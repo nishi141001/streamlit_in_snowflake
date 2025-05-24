@@ -1,7 +1,6 @@
 class VectorSearchService:
     def __init__(self, session: Session):
         self.session = session
-        self.vector_dim = 384  # デフォルトのベクトル次元数
         self._init_tables()
 
     def _init_tables(self):
