@@ -184,6 +184,14 @@ class DocumentService:
     
     def _init_tables(self) -> None:
         """必要なテーブルの初期化"""
+        # 既存のテーブルを削除
+        self.session.sql("""
+        DROP TABLE IF EXISTS document_access;
+        DROP TABLE IF EXISTS document_versions;
+        DROP TABLE IF EXISTS document_tags;
+        DROP TABLE IF EXISTS documents;
+        """).collect()
+
         # ドキュメントテーブル
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS documents (
@@ -195,7 +203,7 @@ class DocumentService:
             folder_path STRING,
             version INTEGER,
             status STRING,
-            metadata JSON,
+            metadata VARIANT,
             PRIMARY KEY (file_name)
         )
         """).collect()
@@ -285,7 +293,7 @@ class DocumentService:
             folder_path, version, status, metadata
         ) VALUES (
             :file_name, :upload_date, :file_type, :file_size,
-            :folder_path, :version, :status, :metadata
+            :folder_path, :version, :status, PARSE_JSON(:metadata)
         )
         """, {
             "file_name": file_name,
@@ -295,7 +303,7 @@ class DocumentService:
             "folder_path": folder_path,
             "version": version,
             "status": "active",
-            "metadata": json.dumps(metadata) if metadata else None
+            "metadata": json.dumps(metadata) if metadata else "{}"
         }).collect()
         
         # タグの保存

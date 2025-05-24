@@ -81,15 +81,6 @@ def render_sidebar():
         # エクスポート
         render_export_section()
         
-        # アプリ情報
-        st.markdown("---")
-        st.markdown("### 📝 アプリ情報")
-        st.markdown("""
-        - Snowflake Cortexを利用したPDF分析アプリ
-        - 意味検索とAI質問応答
-        - 複数文書の横断分析
-        """)
-        
         # バージョン情報
         st.markdown("---")
         st.caption("Version 2.0.0")
