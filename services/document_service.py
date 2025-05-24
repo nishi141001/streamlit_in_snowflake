@@ -201,7 +201,7 @@ class DocumentService:
             # ドキュメントテーブルを個別に作成（外部キー制約の親テーブル）
             create_documents = """
             CREATE TABLE IF NOT EXISTS documents (
-                doc_id STRING,
+                doc_id STRING PRIMARY KEY,
                 file_name STRING,
                 upload_date TIMESTAMP,
                 file_type STRING,
@@ -210,8 +210,7 @@ class DocumentService:
                 folder_path STRING,
                 version INTEGER,
                 status STRING,
-                metadata VARIANT,
-                PRIMARY KEY (doc_id)
+                metadata VARIANT
             )
             """
             self.session.sql(create_documents).collect()
