@@ -184,16 +184,14 @@ class DocumentService:
     
     def _init_tables(self) -> None:
         """必要なテーブルの初期化"""
-        # 既存のテーブルを削除
-        self.session.sql("""
-        DROP TABLE IF EXISTS document_access;
-        DROP TABLE IF EXISTS document_versions;
-        DROP TABLE IF EXISTS document_tags;
-        DROP TABLE IF EXISTS documents;
-        DROP TABLE IF EXISTS document_chunks;
-        DROP TABLE IF EXISTS document_tables;
-        DROP TABLE IF EXISTS document_figures;
-        """).collect()
+        # 既存のテーブルを個別に削除
+        self.session.sql("DROP TABLE IF EXISTS document_access").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_versions").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_tags").collect()
+        self.session.sql("DROP TABLE IF EXISTS documents").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_chunks").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_tables").collect()
+        self.session.sql("DROP TABLE IF EXISTS document_figures").collect()
 
         # ドキュメントテーブル
         self.session.sql("""

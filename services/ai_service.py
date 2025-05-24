@@ -28,6 +28,10 @@ class AIService:
     
     def _init_tables(self):
         """必要なテーブルの初期化"""
+        # 既存のテーブルを個別に削除
+        self.session.sql("DROP TABLE IF EXISTS custom_prompts").collect()
+        self.session.sql("DROP TABLE IF EXISTS answer_history").collect()
+
         # カスタムプロンプトテーブル
         self.session.sql("""
         CREATE TABLE IF NOT EXISTS custom_prompts (
@@ -36,7 +40,7 @@ class AIService:
             name STRING,
             description STRING,
             prompt_template STRING,
-            parameters JSON,
+            parameters VARIANT,
             created_at TIMESTAMP,
             updated_at TIMESTAMP,
             is_active BOOLEAN,
@@ -50,10 +54,10 @@ class AIService:
             answer_id STRING,
             user_id STRING,
             query STRING,
-            context JSON,
+            context VARIANT,
             answer STRING,
             explanation STRING,
-            metadata JSON,
+            metadata VARIANT,
             created_at TIMESTAMP,
             PRIMARY KEY (answer_id)
         )
