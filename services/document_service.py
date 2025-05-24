@@ -325,53 +325,98 @@ class DocumentService:
         Dict
             アップロード結果
         """
-        # ファイル情報の取得
-        file_type = os.path.splitext(file_name)[1].lower()
-        file_size = len(file_data)
-        
-        # バージョン番号の取得
-        version = self._get_next_version(file_name)
-        
-        # ドキュメントの保存
-        self.session.sql("""
-        INSERT INTO documents (
-            doc_id, file_name, upload_date, file_type, file_size,
-            folder_path, version, status, metadata
-        ) VALUES (
-            :doc_id, :file_name, :upload_date, :file_type, :file_size,
-            :folder_path, :version, :status, PARSE_JSON(:metadata)
-        )
-        """, {
-            "doc_id": f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "file_name": file_name,
-            "upload_date": datetime.now(),
-            "file_type": file_type,
-            "file_size": file_size,
-            "folder_path": folder_path,
-            "version": version,
-            "status": "active",
-            "metadata": json.dumps(metadata) if metadata else "{}"
-        }).collect()
-        
-        # タグの保存
-        if tags:
-            self._save_tags(file_name, tags)
-        
-        # アクセス権限の設定
-        if access_control:
-            self._set_access_control(file_name, access_control)
-        
-        # バージョン履歴の保存
-        self._save_version_history(file_name, version, "Initial upload")
-        
-        # キャッシュのクリア
-        self.cache.delete("document_contents")
-        
-        return {
-            "file_name": file_name,
-            "version": version,
-            "status": "success"
-        }
+        try:
+            # ファイル情報の取得
+            file_type = os.path.splitext(file_name)[1].lower()
+            file_size = len(file_data)
+            
+            # バージョン番号の取得（個別に実行）
+            version = self._get_next_version(file_name)
+            
+            # ドキュメントの保存（個別に実行）
+            doc_id = f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self.session.sql("""
+            INSERT INTO documents (
+                doc_id, file_name, upload_date, file_type, file_size,
+                folder_path, version, status, metadata
+            ) VALUES (
+                :doc_id, :file_name, :upload_date, :file_type, :file_size,
+                :folder_path, :version, :status, PARSE_JSON(:metadata)
+            )
+            """, {
+                "doc_id": doc_id,
+                "file_name": file_name,
+                "upload_date": datetime.now(),
+                "file_type": file_type,
+                "file_size": file_size,
+                "folder_path": folder_path,
+                "version": version,
+                "status": "active",
+                "metadata": json.dumps(metadata) if metadata else "{}"
+            }).collect()
+            
+            # タグの保存（個別に実行）
+            if tags:
+                for tag in tags:
+                    self.session.sql("""
+                    INSERT INTO document_tags (file_name, tag, created_at, created_by)
+                    VALUES (:file_name, :tag, :created_at, :created_by)
+                    """, {
+                        "file_name": file_name,
+                        "tag": tag,
+                        "created_at": datetime.now(),
+                        "created_by": st.session_state.get("user_id", "system")
+                    }).collect()
+            
+            # アクセス権限の設定（個別に実行）
+            if access_control:
+                for user_id, permissions in access_control.items():
+                    for permission in permissions:
+                        self.session.sql("""
+                        INSERT INTO document_access (
+                            file_name, user_id, permission,
+                            granted_at, granted_by
+                        ) VALUES (
+                            :file_name, :user_id, :permission,
+                            :granted_at, :granted_by
+                        )
+                        """, {
+                            "file_name": file_name,
+                            "user_id": user_id,
+                            "permission": permission,
+                            "granted_at": datetime.now(),
+                            "granted_by": st.session_state.get("user_id", "system")
+                        }).collect()
+            
+            # バージョン履歴の保存（個別に実行）
+            self.session.sql("""
+            INSERT INTO document_versions (
+                file_name, version, upload_date,
+                uploaded_by, change_description
+            ) VALUES (
+                :file_name, :version, :upload_date,
+                :uploaded_by, :change_description
+            )
+            """, {
+                "file_name": file_name,
+                "version": version,
+                "upload_date": datetime.now(),
+                "uploaded_by": st.session_state.get("user_id", "system"),
+                "change_description": "Initial upload"
+            }).collect()
+            
+            # キャッシュのクリア
+            self.cache.delete("document_contents")
+            
+            return {
+                "file_name": file_name,
+                "version": version,
+                "status": "success"
+            }
+            
+        except Exception as e:
+            print(f"ドキュメントアップロード中にエラー: {str(e)}")
+            raise
     
     def upload_multiple_documents(
         self,
