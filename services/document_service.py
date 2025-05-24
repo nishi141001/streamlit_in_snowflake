@@ -214,14 +214,14 @@ class DocumentService:
             self.session.sql(create_documents).collect()
             
             # ドキュメントチャンクテーブルを個別に作成
-            create_document_chunks = """
+            create_document_chunks = f"""
             CREATE TABLE IF NOT EXISTS document_chunks (
                 chunk_id STRING,
                 doc_id STRING,
                 page_num INTEGER,
                 chunk_num INTEGER,
                 text STRING,
-                embedding VECTOR(FLOAT, {self.vector_dim}),
+                embedding VECTOR({self.vector_dim}),
                 metadata VARIANT,
                 PRIMARY KEY (chunk_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
