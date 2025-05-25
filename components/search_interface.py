@@ -910,35 +910,27 @@ class SearchInterface:
     def _render_export_options(self, results: Dict):
         """エクスポートオプションの表示"""
         with st.expander("📥 エクスポートオプション", expanded=False):
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                export_format = st.selectbox(
-                    "エクスポート形式",
-                    ["CSV", "Excel", "PDF"],
-                    key="export_format"
-                )
-            
-            with col2:
-                export_options = st.multiselect(
-                    "エクスポート項目",
-                    ["基本情報", "コンテキスト", "メタデータ", "分析情報"],
-                    default=["基本情報", "メタデータ"]
-                )
+            export_format = st.selectbox(
+                "エクスポート形式",
+                ["CSV", "Excel", "PDF"],
+                key="export_format"
+            )
             
             if st.button("エクスポート", key="export_button"):
-                export_data = self.search_service.export_results(
-                    results=results["results"],
-                    format=export_format.lower(),
-                    options=export_options
-                )
-                
-                st.download_button(
-                    label=f"{export_format}でダウンロード",
-                    data=export_data,
-                    file_name=f"search_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format.lower()}",
-                    mime=f"application/{export_format.lower()}"
-                )
+                try:
+                    export_data = self.search_service.export_results(
+                        results=results["results"],
+                        format=export_format.lower()
+                    )
+                    
+                    st.download_button(
+                        label=f"{export_format}でダウンロード",
+                        data=export_data,
+                        file_name=f"search_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_format.lower()}",
+                        mime=f"application/{export_format.lower()}"
+                    )
+                except Exception as e:
+                    st.error(f"エクスポート中にエラーが発生しました: {str(e)}")
     
     def _render_search_history(self):
         """検索履歴の表示"""

@@ -167,25 +167,24 @@ class SearchService:
         
         # メタデータテーブルからフィルター条件に合致するファイルを取得
         where_clauses = []
-        params = {}
+        params = []
         
-        if "date_range" in filters:
+        if filters.get("date_range"):
             start_date, end_date = filters["date_range"]
-            where_clauses.append("upload_date BETWEEN :start_date AND :end_date")
-            params["start_date"] = start_date
-            params["end_date"] = end_date
+            where_clauses.append("upload_date BETWEEN ? AND ?")
+            params.extend([start_date, end_date])
         
-        if "file_types" in filters:
-            where_clauses.append("file_type IN (:file_types)")
-            params["file_types"] = filters["file_types"]
+        if filters.get("file_types"):
+            where_clauses.append("file_type IN (?)")
+            params.append(filters["file_types"])
         
-        if "tags" in filters:
-            where_clauses.append("ARRAY_INTERSECTION(tags, :tags) IS NOT NULL")
-            params["tags"] = filters["tags"]
+        if filters.get("tags"):
+            where_clauses.append("ARRAY_INTERSECTION(tags, ?) IS NOT NULL")
+            params.append(filters["tags"])
         
-        if "folders" in filters:
-            where_clauses.append("folder_path IN (:folders)")
-            params["folders"] = filters["folders"]
+        if filters.get("folders"):
+            where_clauses.append("folder_path IN (?)")
+            params.append(filters["folders"])
         
         # クエリの構築
         query = "SELECT file_name FROM document_metadata"
@@ -197,7 +196,7 @@ class SearchService:
         filtered_file_names = [row["FILE_NAME"] for row in filtered_files]
         
         # ページ範囲フィルターの適用
-        if "page_range" in filters:
+        if filters.get("page_range"):
             start_page, end_page = filters["page_range"]
             return [
                 content for content in self._get_document_contents()
@@ -325,11 +324,14 @@ class SearchService:
         # データフレームの作成
         df = pd.DataFrame([
             {
-                "file_name": r["file_name"],
-                "page": r["page"],
-                "text": r.get("text", ""),
-                "score": r.get("score", 0),
-                "type": r.get("type", "unknown")
+                "ファイル名": r["file_name"],
+                "ページ": r["page"],
+                "テキスト": r.get("text", ""),
+                "スコア": r.get("similarity", r.get("match_score", 0)),
+                "タイプ": r.get("type", "unknown"),
+                "マッチした用語": ", ".join(r.get("matched_terms", [])),
+                "類似語": ", ".join(r.get("similar_terms", [])),
+                "コンテキスト": r.get("context", "")
             }
             for r in results
         ])
