@@ -13,13 +13,12 @@ class VectorSearchService:
             # ベクトル検索クエリテーブルを個別に作成
             create_vector_search_queries = """
             CREATE TABLE IF NOT EXISTS vector_search_queries (
-                query_id STRING,
+                query_id STRING PRIMARY KEY,
                 user_id STRING,
                 query_text STRING,
-                query_vector VECTOR,
+                query_vector VECTOR(FLOAT, 384),
                 timestamp TIMESTAMP,
-                filters VARIANT,
-                PRIMARY KEY (query_id)
+                filters VARIANT
             )
             """
             self.session.sql(create_vector_search_queries).collect()
@@ -27,15 +26,15 @@ class VectorSearchService:
             # ベクトル検索結果テーブルを個別に作成
             create_vector_search_results = """
             CREATE TABLE IF NOT EXISTS vector_search_results (
-                result_id STRING,
+                result_id STRING PRIMARY KEY,
                 query_id STRING,
                 doc_id STRING,
                 chunk_id STRING,
                 similarity FLOAT,
                 rank INTEGER,
                 metadata VARIANT,
-                PRIMARY KEY (result_id),
-                FOREIGN KEY (query_id) REFERENCES vector_search_queries(query_id)
+                FOREIGN KEY (query_id) REFERENCES vector_search_queries(query_id),
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_vector_search_results).collect()

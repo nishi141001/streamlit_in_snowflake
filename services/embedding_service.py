@@ -33,13 +33,13 @@ class EmbeddingService:
             # ドキュメント埋め込みテーブルを個別に作成
             create_document_embeddings = """
             CREATE TABLE IF NOT EXISTS document_embeddings (
+                chunk_id STRING PRIMARY KEY,
                 doc_id STRING,
-                chunk_id STRING,
-                embedding VECTOR,
+                embedding VECTOR(FLOAT, 384),
                 text STRING,
                 metadata VARIANT,
                 created_at TIMESTAMP,
-                PRIMARY KEY (chunk_id)
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_document_embeddings).collect()
@@ -47,14 +47,14 @@ class EmbeddingService:
             # 埋め込みメタデータテーブルを個別に作成
             create_embedding_metadata = """
             CREATE TABLE IF NOT EXISTS embedding_metadata (
-                doc_id STRING,
+                doc_id STRING PRIMARY KEY,
                 model_name STRING,
                 embedding_dim INTEGER,
                 chunk_size INTEGER,
                 overlap INTEGER,
                 metadata VARIANT,
                 created_at TIMESTAMP,
-                PRIMARY KEY (doc_id)
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_embedding_metadata).collect()
