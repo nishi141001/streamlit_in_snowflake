@@ -239,25 +239,26 @@ class SearchService:
         """検索履歴の保存（検索モード情報を追加）"""
         history_id = f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         user_id = st.session_state.get("user_id", "anonymous")
+        timestamp = datetime.now()
+        filters_json = json.dumps(filters) if filters else None
         
         self.session.sql("""
         INSERT INTO search_history (
             id, user_id, query, mode, target_document,
             filters, timestamp, results_count
         ) VALUES (
-            :history_id, :user_id, :query, :mode, :target_document,
-            :filters, :timestamp, :results_count
+            ?, ?, ?, ?, ?, ?, ?, ?
         )
-        """, {
-            "history_id": history_id,
-            "user_id": user_id,
-            "query": query,
-            "mode": mode,
-            "target_document": target_document,
-            "filters": json.dumps(filters) if filters else None,
-            "timestamp": datetime.now(),
-            "results_count": results_count
-        }).collect()
+        """, [
+            history_id,
+            user_id,
+            query,
+            mode,
+            target_document,
+            filters_json,
+            timestamp,
+            results_count
+        ]).collect()
     
     def get_search_history(
         self,
