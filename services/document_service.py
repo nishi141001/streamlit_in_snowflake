@@ -1316,4 +1316,95 @@ class DocumentService:
             
         except Exception as e:
             print(f"ドキュメントリストの取得中にエラー: {str(e)}")
-            return [] 
+            return []
+
+    def save_document_metadata(
+        self,
+        file_name: str,
+        metadata: Dict,
+        version: int = 1
+    ) -> None:
+        """ドキュメントメタデータの保存"""
+        self.session.sql("""
+        INSERT INTO document_metadata (
+            file_name, upload_date, file_type, page_count,
+            tags, folder_path, version, access_control, metadata
+        ) VALUES (
+            ?, CURRENT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, PARSE_JSON(?)
+        )
+        """, [
+            file_name,
+            metadata.get("file_type", "pdf"),
+            metadata.get("page_count", 0),
+            metadata.get("tags", []),
+            metadata.get("folder_path", ""),
+            version,
+            metadata.get("access_control", {}),
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect()
+
+    def save_document_chunk(
+        self,
+        doc_id: str,
+        chunk_id: str,
+        text: str,
+        metadata: Dict,
+        embedding: Optional[List[float]] = None
+    ) -> None:
+        """ドキュメントチャンクの保存"""
+        self.session.sql("""
+        INSERT INTO document_chunks (
+            doc_id, chunk_id, text, embedding, metadata
+        ) VALUES (
+            ?, ?, ?, ?, PARSE_JSON(?)
+        )
+        """, [
+            doc_id,
+            chunk_id,
+            text,
+            embedding,
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect()
+
+    def save_table_data(
+        self,
+        doc_id: str,
+        table_id: str,
+        table: Dict,
+        metadata: Dict
+    ) -> None:
+        """テーブルデータの保存"""
+        self.session.sql("""
+        INSERT INTO document_tables (
+            doc_id, table_id, data, bbox, metadata
+        ) VALUES (
+            ?, ?, PARSE_JSON(?), PARSE_JSON(?), PARSE_JSON(?)
+        )
+        """, [
+            doc_id,
+            table_id,
+            json.dumps(table["data"]),
+            json.dumps(table["bbox"]),
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect()
+
+    def save_figure_data(
+        self,
+        doc_id: str,
+        figure_id: str,
+        figure: Dict,
+        metadata: Dict
+    ) -> None:
+        """図表データの保存"""
+        self.session.sql("""
+        INSERT INTO document_figures (
+            doc_id, figure_id, bbox, metadata
+        ) VALUES (
+            ?, ?, PARSE_JSON(?), PARSE_JSON(?)
+        )
+        """, [
+            doc_id,
+            figure_id,
+            json.dumps(figure["bbox"]),
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect() 

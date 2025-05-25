@@ -283,4 +283,40 @@ class EmbeddingService:
         
         except Exception as e:
             st.error(f"ドキュメントの保存中にエラーが発生しました: {str(e)}")
-            return False 
+            return False
+
+    def save_document_embedding(
+        self,
+        doc_id: str,
+        embedding: List[float],
+        metadata: Optional[Dict] = None
+    ) -> None:
+        """ドキュメントの埋め込みベクトルを保存"""
+        self.session.sql("""
+        INSERT INTO document_embeddings (
+            doc_id, embedding, metadata, created_at
+        ) VALUES (
+            ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
+        )
+        """, [
+            doc_id,
+            embedding,
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect()
+
+    def save_embedding_metadata(
+        self,
+        doc_id: str,
+        metadata: Dict
+    ) -> None:
+        """埋め込みメタデータの保存"""
+        self.session.sql("""
+        INSERT INTO embedding_metadata (
+            doc_id, metadata, created_at
+        ) VALUES (
+            ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
+        )
+        """, [
+            doc_id,
+            json.dumps(metadata) if metadata else "{}"
+        ]).collect() 

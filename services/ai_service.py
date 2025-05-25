@@ -534,4 +534,51 @@ class AIService:
             "explanation": explanation,
             "metadata": json.dumps(metadata),
             "created_at": datetime.now()
-        }).collect() 
+        }).collect()
+
+    def save_ai_request(
+        self,
+        request_id: str,
+        request_type: str,
+        parameters: Optional[Dict] = None,
+        context: Optional[Dict] = None,
+        metadata: Optional[Dict] = None
+    ) -> None:
+        """AIリクエストの保存"""
+        self.session.sql("""
+        INSERT INTO ai_requests (
+            request_id, request_type, parameters, context, metadata,
+            timestamp, status
+        ) VALUES (
+            ?, ?, PARSE_JSON(?), PARSE_JSON(?), PARSE_JSON(?),
+            CURRENT_TIMESTAMP(), 'pending'
+        )
+        """, [
+            request_id,
+            request_type,
+            json.dumps(parameters) if parameters else None,
+            json.dumps(context) if context else None,
+            json.dumps(metadata) if metadata else None
+        ]).collect()
+
+    def update_ai_request(
+        self,
+        request_id: str,
+        response: Optional[Dict] = None,
+        status: str = "completed",
+        metadata: Optional[Dict] = None
+    ) -> None:
+        """AIリクエストの更新"""
+        self.session.sql("""
+        UPDATE ai_requests
+        SET response = PARSE_JSON(?),
+            status = ?,
+            metadata = PARSE_JSON(?),
+            updated_at = CURRENT_TIMESTAMP()
+        WHERE request_id = ?
+        """, [
+            json.dumps(response) if response else None,
+            status,
+            json.dumps(metadata) if metadata else None,
+            request_id
+        ]).collect() 
