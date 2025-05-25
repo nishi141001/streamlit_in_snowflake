@@ -241,17 +241,17 @@ class SearchService:
         user_id = st.session_state.get("user_id", "anonymous")
         timestamp = datetime.now()
         
-        # filtersをJSON文字列に変換
+        # filtersをJSON文字列に変換し、SnowflakeのVARIANT型に変換
         filters_json = json.dumps(filters) if filters else "{}"
         
-        # SQLクエリを修正：PARSE_JSON関数を直接使用
+        # SQLクエリを修正：TO_VARIANT関数を使用
         self.session.sql("""
         INSERT INTO search_history (
             id, user_id, query, mode, target_document,
             filters, timestamp, results_count
         ) VALUES (
             ?, ?, ?, ?, ?,
-            PARSE_JSON(?),  -- PARSE_JSON関数を直接使用
+            TO_VARIANT(PARSE_JSON(?)),  -- TO_VARIANT関数で明示的にVARIANT型に変換
             ?, ?
         )
         """, [
@@ -260,7 +260,7 @@ class SearchService:
             query,
             mode,
             target_document,
-            filters_json,  # JSON文字列をPARSE_JSON関数に渡す
+            filters_json,  # JSON文字列をPARSE_JSON関数に渡し、TO_VARIANTで変換
             timestamp,
             results_count
         ]).collect()
