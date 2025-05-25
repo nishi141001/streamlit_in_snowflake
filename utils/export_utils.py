@@ -212,7 +212,7 @@ def render_export_history() -> None:
     
     if st.button("履歴をクリア"):
         export_manager.clear_export_history()
-        st.experimental_rerun()
+        st.rerun()
 
 
 def export_history_as_csv(history: List[Dict], filename: Optional[str] = None) -> None:

@@ -71,6 +71,7 @@ class ThemeManager:
             }
         
         self.set_theme(theme)
+        st.rerun()
     
     def _apply_theme(self) -> None:
         """テーマを適用"""

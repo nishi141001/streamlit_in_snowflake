@@ -1017,4 +1017,7 @@ class SearchInterface:
                 except json.JSONDecodeError:
                     st.error("メタデータのJSON形式が不正です")
                 except Exception as e:
-                    st.error(f"アップロード中にエラーが発生しました: {str(e)}") 
+                    st.error(f"アップロード中にエラーが発生しました: {str(e)}")
+
+                # エクスポート後の画面更新
+                st.rerun() 
