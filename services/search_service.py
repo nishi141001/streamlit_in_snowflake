@@ -242,7 +242,7 @@ class SearchService:
         timestamp = datetime.now()
         
         # filtersをJSON文字列に変換してPARSE_JSON関数でVARIANT型に変換
-        filters_json = json.dumps(filters) if filters else None
+        filters_json = json.dumps(filters) if filters else "{}"
         
         self.session.sql("""
         INSERT INTO search_history (
