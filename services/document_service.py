@@ -202,7 +202,7 @@ class DocumentService:
             create_documents = """
             CREATE TABLE IF NOT EXISTS documents (
                 doc_id STRING PRIMARY KEY,
-                file_name STRING,
+                file_name STRING UNIQUE,
                 upload_date TIMESTAMP,
                 file_type STRING,
                 file_size INTEGER,
@@ -233,14 +233,13 @@ class DocumentService:
             # ドキュメントテーブルテーブルを個別に作成
             create_document_tables = """
             CREATE TABLE IF NOT EXISTS document_tables (
-                table_id STRING,
+                table_id STRING PRIMARY KEY,
                 doc_id STRING,
                 page_num INTEGER,
                 table_num INTEGER,
                 data VARIANT,
                 bbox VARIANT,
                 metadata VARIANT,
-                PRIMARY KEY (table_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
@@ -249,13 +248,12 @@ class DocumentService:
             # ドキュメント図表テーブルを個別に作成
             create_document_figures = """
             CREATE TABLE IF NOT EXISTS document_figures (
-                figure_id STRING,
+                figure_id STRING PRIMARY KEY,
                 doc_id STRING,
                 page_num INTEGER,
                 figure_num INTEGER,
                 bbox VARIANT,
                 metadata VARIANT,
-                PRIMARY KEY (figure_id),
                 FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
@@ -264,12 +262,12 @@ class DocumentService:
             # タグテーブルを個別に作成
             create_document_tags = """
             CREATE TABLE IF NOT EXISTS document_tags (
-                file_name STRING,
+                tag_id STRING PRIMARY KEY,
+                doc_id STRING,
                 tag STRING,
                 created_at TIMESTAMP,
                 created_by STRING,
-                PRIMARY KEY (file_name, tag),
-                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_document_tags).collect()
@@ -277,14 +275,14 @@ class DocumentService:
             # バージョン履歴テーブルを個別に作成
             create_document_versions = """
             CREATE TABLE IF NOT EXISTS document_versions (
-                file_name STRING,
+                version_id STRING PRIMARY KEY,
+                doc_id STRING,
                 version INTEGER,
                 upload_date TIMESTAMP,
                 uploaded_by STRING,
                 change_description STRING,
                 file_hash STRING,
-                PRIMARY KEY (file_name, version),
-                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_document_versions).collect()
@@ -292,13 +290,13 @@ class DocumentService:
             # アクセス権限テーブルを個別に作成
             create_document_access = """
             CREATE TABLE IF NOT EXISTS document_access (
-                file_name STRING,
+                access_id STRING PRIMARY KEY,
+                doc_id STRING,
                 user_id STRING,
                 permission STRING,
                 granted_at TIMESTAMP,
                 granted_by STRING,
-                PRIMARY KEY (file_name, user_id),
-                FOREIGN KEY (file_name) REFERENCES documents(file_name)
+                FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
             )
             """
             self.session.sql(create_document_access).collect()
@@ -373,10 +371,10 @@ class DocumentService:
             if tags:
                 for tag in tags:
                     self.session.sql("""
-                    INSERT INTO document_tags (file_name, tag, created_at, created_by)
-                    VALUES (:file_name, :tag, :created_at, :created_by)
+                    INSERT INTO document_tags (doc_id, tag, created_at, created_by)
+                    VALUES (:doc_id, :tag, :created_at, :created_by)
                     """, {
-                        "file_name": file_name,
+                        "doc_id": doc_id,
                         "tag": tag,
                         "created_at": datetime.now(),
                         "created_by": st.session_state.get("user_id", "system")
@@ -388,14 +386,14 @@ class DocumentService:
                     for permission in permissions:
                         self.session.sql("""
                         INSERT INTO document_access (
-                            file_name, user_id, permission,
+                            doc_id, user_id, permission,
                             granted_at, granted_by
                         ) VALUES (
-                            :file_name, :user_id, :permission,
+                            :doc_id, :user_id, :permission,
                             :granted_at, :granted_by
                         )
                         """, {
-                            "file_name": file_name,
+                            "doc_id": doc_id,
                             "user_id": user_id,
                             "permission": permission,
                             "granted_at": datetime.now(),
@@ -405,14 +403,15 @@ class DocumentService:
             # バージョン履歴の保存（個別に実行）
             self.session.sql("""
             INSERT INTO document_versions (
-                file_name, version, upload_date,
+                version_id, doc_id, version, upload_date,
                 uploaded_by, change_description
             ) VALUES (
-                :file_name, :version, :upload_date,
+                :version_id, :doc_id, :version, :upload_date,
                 :uploaded_by, :change_description
             )
             """, {
-                "file_name": file_name,
+                "version_id": f"{file_name}_{version}",
+                "doc_id": doc_id,
                 "version": version,
                 "upload_date": datetime.now(),
                 "uploaded_by": st.session_state.get("user_id", "system"),
@@ -702,10 +701,10 @@ class DocumentService:
         """タグの保存"""
         for tag in tags:
             self.session.sql("""
-            INSERT INTO document_tags (file_name, tag, created_at, created_by)
-            VALUES (:file_name, :tag, :created_at, :created_by)
+            INSERT INTO document_tags (doc_id, tag, created_at, created_by)
+            VALUES (:doc_id, :tag, :created_at, :created_by)
             """, {
-                "file_name": file_name,
+                "doc_id": file_name,
                 "tag": tag,
                 "created_at": datetime.now(),
                 "created_by": st.session_state.get("user_id", "system")
@@ -715,7 +714,7 @@ class DocumentService:
         """タグの取得"""
         results = self.session.sql("""
         SELECT tag FROM document_tags
-        WHERE file_name = :file_name
+        WHERE doc_id = :file_name
         ORDER BY created_at
         """, {"file_name": file_name}).collect()
         
@@ -726,7 +725,7 @@ class DocumentService:
         # 既存のタグを削除
         self.session.sql("""
         DELETE FROM document_tags
-        WHERE file_name = :file_name
+        WHERE doc_id = :file_name
         """, {"file_name": file_name}).collect()
         
         # 新しいタグを保存
@@ -742,14 +741,14 @@ class DocumentService:
             for permission in permissions:
                 self.session.sql("""
                 INSERT INTO document_access (
-                    file_name, user_id, permission,
+                    doc_id, user_id, permission,
                     granted_at, granted_by
                 ) VALUES (
-                    :file_name, :user_id, :permission,
+                    :doc_id, :user_id, :permission,
                     :granted_at, :granted_by
                 )
                 """, {
-                    "file_name": file_name,
+                    "doc_id": file_name,
                     "user_id": user_id,
                     "permission": permission,
                     "granted_at": datetime.now(),
@@ -761,7 +760,7 @@ class DocumentService:
         results = self.session.sql("""
         SELECT user_id, permission
         FROM document_access
-        WHERE file_name = :file_name
+        WHERE doc_id = :file_name
         ORDER BY granted_at
         """, {"file_name": file_name}).collect()
         
@@ -784,7 +783,7 @@ class DocumentService:
         # 既存の権限を削除
         self.session.sql("""
         DELETE FROM document_access
-        WHERE file_name = :file_name
+        WHERE doc_id = :file_name
         """, {"file_name": file_name}).collect()
         
         # 新しい権限を設定
@@ -799,14 +798,15 @@ class DocumentService:
         """バージョン履歴の保存"""
         self.session.sql("""
         INSERT INTO document_versions (
-            file_name, version, upload_date,
+            version_id, doc_id, version, upload_date,
             uploaded_by, change_description
         ) VALUES (
-            :file_name, :version, :upload_date,
+            :version_id, :doc_id, :version, :upload_date,
             :uploaded_by, :change_description
         )
         """, {
-            "file_name": file_name,
+            "version_id": f"{file_name}_{version}",
+            "doc_id": file_name,
             "version": version,
             "upload_date": datetime.now(),
             "uploaded_by": st.session_state.get("user_id", "system"),
@@ -817,7 +817,7 @@ class DocumentService:
         """バージョン履歴の取得"""
         results = self.session.sql("""
         SELECT * FROM document_versions
-        WHERE file_name = :file_name
+        WHERE doc_id = :file_name
         ORDER BY version DESC
         """, {"file_name": file_name}).collect()
         
