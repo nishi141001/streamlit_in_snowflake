@@ -241,15 +241,18 @@ class SearchService:
         user_id = st.session_state.get("user_id", "anonymous")
         timestamp = datetime.now()
         
-        # filtersをJSON文字列に変換してPARSE_JSON関数でVARIANT型に変換
+        # filtersをJSON文字列に変換
         filters_json = json.dumps(filters) if filters else "{}"
         
+        # SQLクエリを修正：PARSE_JSON関数を直接使用
         self.session.sql("""
         INSERT INTO search_history (
             id, user_id, query, mode, target_document,
             filters, timestamp, results_count
         ) VALUES (
-            ?, ?, ?, ?, ?, PARSE_JSON(?), ?, ?
+            ?, ?, ?, ?, ?,
+            PARSE_JSON(?),  -- PARSE_JSON関数を直接使用
+            ?, ?
         )
         """, [
             history_id,
@@ -257,7 +260,7 @@ class SearchService:
             query,
             mode,
             target_document,
-            filters_json,  # PARSE_JSON関数でVARIANT型に変換
+            filters_json,  # JSON文字列をPARSE_JSON関数に渡す
             timestamp,
             results_count
         ]).collect()
