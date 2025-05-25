@@ -182,6 +182,9 @@ def render_export_ui(
             
             st.success("エクスポートが完了しました")
             
+            # エクスポート後の画面更新
+            st.rerun()
+            
         except Exception as e:
             st.error(f"エクスポート中にエラーが発生しました: {str(e)}")
 

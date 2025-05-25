@@ -150,7 +150,7 @@ def render_theme_switcher() -> None:
         key="theme_toggle"
     ):
         theme_manager.toggle_mode()
-        st.experimental_rerun()
+        st.rerun()
     
     # カスタムテーマ設定（展開可能なセクション）
     with st.expander("カスタムテーマ設定"):
@@ -175,7 +175,7 @@ def render_theme_switcher() -> None:
                 'font_family': font_family
             })
             theme_manager.set_theme(new_theme)
-            st.experimental_rerun()
+            st.rerun()
 
 
 def get_theme_css() -> str:

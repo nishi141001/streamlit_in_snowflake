@@ -59,7 +59,7 @@ class SearchInterface:
             ):
                 st.session_state.search_mode = "all"
                 st.session_state.selected_document = None
-                st.experimental_rerun()
+                st.rerun()
         
         with col2:
             if st.button(
@@ -68,7 +68,7 @@ class SearchInterface:
                 type="primary" if st.session_state.search_mode == "single" else "secondary"
             ):
                 st.session_state.search_mode = "single"
-                st.experimental_rerun()
+                st.rerun()
         
         # 検索モードに応じた説明
         if st.session_state.search_mode == "all":
@@ -192,7 +192,7 @@ class SearchInterface:
         with col2:
             if st.button("🌙" if not st.session_state.dark_mode else "☀️"):
                 st.session_state.dark_mode = not st.session_state.dark_mode
-                st.experimental_rerun()
+                st.rerun()
         
         # ダークモードの適用
         if st.session_state.dark_mode:

@@ -1235,4 +1235,85 @@ class DocumentService:
                 'entity_types': list(entities.keys()),
                 'export_timestamp': datetime.now().isoformat()
             }
-        ) 
+        )
+
+    def get_document_list(
+        self,
+        folder_path: Optional[str] = None,
+        include_deleted: bool = False,
+        include_metadata: bool = False
+    ) -> List[Dict]:
+        """
+        ドキュメントリストの取得
+        
+        Parameters:
+        -----------
+        folder_path : Optional[str]
+            フォルダパス（指定した場合、そのフォルダ内のドキュメントのみ取得）
+        include_deleted : bool
+            削除済みドキュメントを含めるかどうか
+        include_metadata : bool
+            メタデータを含めるかどうか
+            
+        Returns:
+        --------
+        List[Dict]
+            ドキュメントリスト
+        """
+        try:
+            # 基本クエリの構築
+            query = """
+            SELECT 
+                doc_id,
+                file_name,
+                upload_date,
+                file_type,
+                file_size,
+                page_count,
+                folder_path,
+                version,
+                status
+            """
+            
+            if include_metadata:
+                query += ", metadata"
+            
+            query += " FROM documents WHERE 1=1"
+            
+            # 条件の追加
+            params = {}
+            if folder_path:
+                query += " AND folder_path = :folder_path"
+                params["folder_path"] = folder_path
+            
+            if not include_deleted:
+                query += " AND status != 'deleted'"
+            
+            # 結果の取得
+            results = self.session.sql(query, params).collect()
+            
+            # 結果の整形
+            documents = []
+            for row in results:
+                doc = {
+                    "doc_id": row["DOC_ID"],
+                    "file_name": row["FILE_NAME"],
+                    "upload_date": row["UPLOAD_DATE"],
+                    "file_type": row["FILE_TYPE"],
+                    "file_size": row["FILE_SIZE"],
+                    "page_count": row["PAGE_COUNT"],
+                    "folder_path": row["FOLDER_PATH"],
+                    "version": row["VERSION"],
+                    "status": row["STATUS"]
+                }
+                
+                if include_metadata and row.get("METADATA"):
+                    doc["metadata"] = json.loads(row["METADATA"])
+                
+                documents.append(doc)
+            
+            return documents
+            
+        except Exception as e:
+            print(f"ドキュメントリストの取得中にエラー: {str(e)}")
+            return [] 
