@@ -400,19 +400,23 @@ class SearchInterface:
         # データフレームの作成
         df_data = []
         for doc_name, stats in doc_stats.items():
+            avg_score = sum(stats["scores"]) / len(stats["scores"]) if stats["scores"] else 0
             df_data.append({
                 "ドキュメント": doc_name,
                 "マッチ数": stats["matches"],
-                "平均スコア": sum(stats["scores"]) / len(stats["scores"]),
+                "スコア": avg_score,  # カラム名を変更
                 "マッチしたページ数": len(stats["pages"]),
                 "マッチした用語数": len(stats["matched_terms"])
             })
         
         df = pd.DataFrame(df_data)
-        st.dataframe(
-            df.style.background_gradient(subset=["平均スコア"]),
-            use_container_width=True
-        )
+        if not df.empty:
+            st.dataframe(
+                df.style.background_gradient(subset=["スコア"]),  # カラム名を変更
+                use_container_width=True
+            )
+        else:
+            st.info("分析する検索結果がありません。")
         
         # ドキュメントタイプ別の分析
         st.markdown("#### ドキュメントタイプ別分析")
@@ -423,13 +427,16 @@ class SearchInterface:
                 doc_types[doc_type] = 0
             doc_types[doc_type] += doc_stats[doc_name]["matches"]
         
-        # 円グラフの表示
-        fig = px.pie(
-            values=list(doc_types.values()),
-            names=list(doc_types.keys()),
-            title="ドキュメントタイプ別の検索結果分布"
-        )
-        st.plotly_chart(fig)
+        if doc_types:
+            # 円グラフの表示
+            fig = px.pie(
+                values=list(doc_types.values()),
+                names=list(doc_types.keys()),
+                title="ドキュメントタイプ別の検索結果分布"
+            )
+            st.plotly_chart(fig)
+        else:
+            st.info("ドキュメントタイプ別の分析データがありません。")
     
     def _render_matching_analysis(self, results: Dict):
         """マッチング分析の表示"""
