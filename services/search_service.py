@@ -240,7 +240,6 @@ class SearchService:
         history_id = f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         user_id = st.session_state.get("user_id", "anonymous")
         timestamp = datetime.now()
-        filters_json = json.dumps(filters) if filters else None
         
         self.session.sql("""
         INSERT INTO search_history (
@@ -255,7 +254,7 @@ class SearchService:
             query,
             mode,
             target_document,
-            filters_json,
+            filters,  # VARIANT型のカラムにはJSONデータをそのまま渡す
             timestamp,
             results_count
         ]).collect()
